@@ -1,0 +1,28 @@
+= Androoid Project Notes
+
+== Required Setup
+
+* Spring Roo
+* Android SDK r21.1 or later, latest is best supported
+* Java Development Kit 1.6 - 1.8 as supported by the Android SDK
+* Apache Maven 3.0.5+
+* Environment variables and PATH settings:
+** Set ANDROID_HOME to point to the path of your installed Android SDK
+** $ANDROID_HOME/tools as well as $ANDROID_HOME/platform-tools to your $PATH
+** Or on Windows %ANDROID_HOME%\tools and %ANDROID_HOME%\platform-tools
+
+== Deploy Application on Android device
+
+# Connect your android device
+
+# Execute the following command
+
+	mvn clean install android:deploy
+
+# If Platform/API level X not available.
+
+	android update sdk --no-ui --obsolete --force
+
+== References
+
+http://simpligility.github.io/android-maven-plugin/
