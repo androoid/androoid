@@ -1,4 +1,4 @@
-= Androoid Project image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Roo Project",width="25%"]
+= Androoid Project image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Roo Project",width="10%"]
 
 Welcome to Androoid Project!
 
