@@ -1,6 +1,4 @@
 = Androoid Project
 
-image:https://github.com/androoid/androoid/blob/gh-pages/images/logo.gif?raw=true[width="50%", alt="Androoid Logo"]
-
 Welcome to Androoid Project!
 
