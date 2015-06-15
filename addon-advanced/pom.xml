@@ -14,16 +14,28 @@
 	    <version>1.0.0.BUILD-SNAPSHOT</version>
 	    <relativePath>../osgi-bundles</relativePath>
   	</parent>
-  	<artifactId>io.androoid.roo.addon.suite.addon.project</artifactId>
+  	<artifactId>io.androoid.roo.addon.suite.addon-advanced</artifactId>
   	<packaging>bundle</packaging>
-  	<name>Androoid - Add-On Project</name>
-    <description>Androoid Add-On that generates Android project structure using gradle.</description>
-    
-    <!-- Add-On Properties -->
+  	<name>Androoid - addon-advanced</name>
+    <description>An add-on created by Spring Roo's addon creator feature.</description>
+    <url>http://www.some.company</url>
     <properties>
         <target.osgi-repository.directory>${basedir}/../target/osgi-repository-bin</target.osgi-repository.directory>
     </properties>
-       
+    <repositories>
+        <repository>
+            <id>spring-roo-repository</id>
+            <name>Spring Roo Repository</name>
+            <url>http://spring-roo-repository.springsource.org/release</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-roo-repository</id>
+            <name>Spring Roo Repository</name>
+            <url>http://spring-roo-repository.springsource.org/release</url>
+        </pluginRepository>
+    </pluginRepositories>
     <dependencies>
         <!-- OSGi -->
         <dependency>
@@ -76,10 +88,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-        </dependency>
-         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
         </dependency>
     </dependencies>
 </project>

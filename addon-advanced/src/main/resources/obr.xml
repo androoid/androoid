@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<repository>
+  <resource>
+    <capability name="roo-addon">
+      
+    <p n="command-add" v="suite add"/>
+            <p n="command-all" v="suite all"/>
+            <p n="command-setup" v="suite setup"/>
+        </capability>
+  </resource>
+</repository>

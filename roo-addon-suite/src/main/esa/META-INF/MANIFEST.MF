@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1427459113830
+Build-Jdk: 1.7.0_60
+Bundle-Description: Androoid is an Spring Roo Addon Suite that provides all functionalities to generate android projects using Spring Roo Shell
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.html
+Bundle-ManifestVersion: 2
+Bundle-Name: Androoid - Roo Addon Suite
+Bundle-SymbolicName: io.androoid.roo.addon.suite.roo.addon.suite
+Bundle-Version: 1.0.0.BUILD-SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Tool: Bnd-2.3.0.201405100607

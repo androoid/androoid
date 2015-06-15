@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <licenses>
+        <license>
+            <name>&gt;GNU General Public License (GPL), Version 3.0</name>
+            <url>http://www.gnu.org/copyleft/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.androoid.roo.addon.suite</groupId>
+        <artifactId>io.androoid.roo.addon.suite.root</artifactId>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <artifactId>io.androoid.roo.addon.suite.osgi.bundles</artifactId>
+    <packaging>pom</packaging>
+    <name>Androoid - OSGi Bundles</name>
+    <description>Provides POM configuration inheritence for standard Roo SCR-requiring modules.</description>
+
+    <!-- No modules should be defined below;
+         this module simply provides POM configuration inheritence - not reactor builds -->
+    <modules/>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
