@@ -20,6 +20,14 @@ public interface AndrooidProjectOperations {
      * @return true if it should be available, otherwise false
      */
     boolean isCreateProjectAvailable();
+    
+    /**
+     * Indicates if exists a generated android project
+     * on current folder
+     * 
+     * @return true if exists an android project, otherwise false
+     */
+    boolean isAndrooidProjectGenerated();
 
     /**
      * Generates Android project structure using gradle.

@@ -83,6 +83,14 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		createAndroidManifestFile(applicationId);
 	}
 
+	/** {@inheritDoc} */
+	public boolean isAndrooidProjectGenerated() {
+		return fileManager.exists("build.gradle")
+				&& !projectOperations.isFocusedProjectAvailable()
+				&& fileManager.exists(pathResolver.getRoot().concat(
+						"/src/main/AndroidManifest.xml"));
+	}
+
 	/**
 	 * A private method which creates AndroidManifest.xml File
 	 * 
@@ -129,8 +137,8 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		for (String folder : foldersToCreate) {
 			folderToCreate += folder.concat("/");
 		}
-		fileManager.createDirectory(pathResolver.getRoot().concat("/src/main/java/")
-				.concat(folderToCreate));
+		fileManager.createDirectory(pathResolver.getRoot()
+				.concat("/src/main/java/").concat(folderToCreate));
 		// Creating RESOURCES folders
 		fileManager.createDirectory(pathResolver.getRoot().concat(
 				"/src/main/res"));
@@ -186,7 +194,7 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 			}
 
 		}
-		
+
 		// Copying White app icon
 		final String whiteIconFile = pathResolver.getRoot().concat(
 				"/src/main/res/drawable/logo_white.png");
@@ -230,15 +238,15 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 				.getRoot() + "/src/main/res/values/strings.xml");
 
 		XmlUtils.writeXml(mutableFile.getOutputStream(), stringsFile);
-		
-		
+
 		// Copying basic styles.xml file
 		InputStream stylesXmlFile = FileUtils.getInputStream(getClass(),
 				"values/styles.xml");
 
 		final Document stylesFile = XmlUtils.readXml(stylesXmlFile);
-		final MutableFile mutableStylesFile = fileManager.createFile(pathResolver
-				.getRoot() + "/src/main/res/values/styles.xml");
+		final MutableFile mutableStylesFile = fileManager
+				.createFile(pathResolver.getRoot()
+						+ "/src/main/res/values/styles.xml");
 
 		XmlUtils.writeXml(mutableStylesFile.getOutputStream(), stylesFile);
 
