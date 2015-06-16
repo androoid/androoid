@@ -62,7 +62,34 @@ public class GradleDependencyManagerProvider implements
 
 	/** {@inheritDoc} */
 	public void addDependency(String groupId, String artifactId, String version) {
-		// TODO Auto-generated method stub
+		// Checking that build.gradle exists
+		Validate.isTrue(fileManager.exists("build.gradle"),
+				"'build.gradle' file doesn't exists!");
+
+		final InputStream templateInputStream = fileManager
+				.getInputStream(pathResolver.getRoot().concat("/build.gradle"));
+
+		OutputStream outputStream = null;
+
+		try {
+			// Read and insert new dependency
+			String input = IOUtils.toString(templateInputStream);
+			
+			// TODO: Update dependencies on gradle
+			
+			// Output the file for the user
+			final MutableFile mutableFile = fileManager.updateFile(pathResolver
+					.getRoot() + "/build.gradle");
+
+			outputStream = mutableFile.getOutputStream();
+			IOUtils.write(input, outputStream);
+		} catch (final IOException ioe) {
+			throw new IllegalStateException(
+					"Unable to create build.gradle file", ioe);
+		} finally {
+			IOUtils.closeQuietly(templateInputStream);
+			IOUtils.closeQuietly(outputStream);
+		}
 
 	}
 
@@ -102,6 +129,11 @@ public class GradleDependencyManagerProvider implements
 			IOUtils.closeQuietly(outputStream);
 		}
 
+	}
+
+	/** {@inheritDoc} */
+	public boolean isInstalled() {
+		return fileManager.exists("build.gradle");
 	}
 
 }

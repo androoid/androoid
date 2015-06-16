@@ -46,7 +46,18 @@ public class DependencyManagerOperationsImpl implements
 		}
 		return providersId;
 	}
-	
+
+	/** {@inheritDoc} **/
+	public DependencyManagerProvider getInstalledProvider() {
+		DependencyManagerProvider provider = null;
+		for (DependencyManagerProvider tmpProvider : providers) {
+			if (tmpProvider.isInstalled()) {
+				provider = tmpProvider;
+			}
+		}
+		return provider;
+	}
+
 	/**
 	 * This method load new providers
 	 * 
@@ -64,5 +75,4 @@ public class DependencyManagerOperationsImpl implements
 	protected void unbindProvider(final DependencyManagerProvider provider) {
 		providers.remove(provider);
 	}
-
 }

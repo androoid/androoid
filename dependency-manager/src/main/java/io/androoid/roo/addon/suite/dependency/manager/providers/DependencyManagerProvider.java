@@ -35,7 +35,7 @@ public interface DependencyManagerProvider {
 	 * @return A String with the provider description
 	 */
 	String getDescription();
-	
+
 	/**
 	 * Install dependency manager on generated project
 	 * 
@@ -45,6 +45,14 @@ public interface DependencyManagerProvider {
 	 */
 	void install(JavaPackage applicationId, String minSdkVersion,
 			String targetSdkVersion);
+
+	/**
+	 * Checks if current DependencyManagerProvider is installed on current
+	 * generated project
+	 * 
+	 * @return boolean
+	 */
+	boolean isInstalled();
 
 	/**
 	 * Add new dependency to generated project

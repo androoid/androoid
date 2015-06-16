@@ -61,13 +61,44 @@ public class MavenDependencyManagerProvider implements
 	}
 
 	public void addDependency(String groupId, String artifactId, String version) {
-		// TODO Auto-generated method stub
+		// Checking that pom.xml exists
+		Validate.isTrue(fileManager.exists("pom.xml"),
+				"'pom.xml' file doesn't exists!");
 
+		// Add dependency to pom.xml
+		final InputStream templateInputStream = fileManager
+				.getInputStream("pom.xml");
+
+		final Document pom = XmlUtils.readXml(templateInputStream);
+		final Element root = pom.getDocumentElement();
+
+		Element dependenciesElement = (Element) root.getElementsByTagName(
+				"dependencies").item(0);
+		
+		Element dependencyElement = pom.createElement("dependency");
+		Element groupIdElement = pom.createElement("groupId");
+		Element artifactIdElement = pom.createElement("artifactId");
+		Element versionElement = pom.createElement("version");
+		
+		groupIdElement.setTextContent(groupId);
+		artifactIdElement.setTextContent(artifactId);
+		versionElement.setTextContent(version);
+
+		dependencyElement.appendChild(groupIdElement);
+		dependencyElement.appendChild(artifactIdElement);
+		dependencyElement.appendChild(versionElement);
+		
+		dependenciesElement.appendChild(dependencyElement);
+		
+		final MutableFile mutableFile = fileManager.updateFile(pathResolver
+				.getRoot() + "/pom.xml");
+
+		XmlUtils.writeXml(mutableFile.getOutputStream(), pom);
 	}
 
 	public void install(JavaPackage applicationId, String minSdkVersion,
 			String targetSdkVersion) {
-		// Checking that build.gradle doesn't exists
+		// Checking that pom.xml doesn't exists
 		Validate.isTrue(!fileManager.exists("pom.xml"),
 				"'pom.xml' file exists!");
 
@@ -83,13 +114,13 @@ public class MavenDependencyManagerProvider implements
 		groupIdElement.setTextContent(applicationId
 				.getFullyQualifiedPackageName());
 
-		Element artifactIdElement = (Element) root
-				.getElementsByTagName("artifactId").item(0);
+		Element artifactIdElement = (Element) root.getElementsByTagName(
+				"artifactId").item(0);
 		artifactIdElement.setTextContent(applicationId
 				.getFullyQualifiedPackageName());
 
-		Element platformElement = (Element) root
-				.getElementsByTagName("platform").item(0);
+		Element platformElement = (Element) root.getElementsByTagName(
+				"platform").item(0);
 		platformElement.setTextContent(minSdkVersion);
 
 		final MutableFile mutableFile = fileManager.createFile(pathResolver
@@ -97,6 +128,11 @@ public class MavenDependencyManagerProvider implements
 
 		XmlUtils.writeXml(mutableFile.getOutputStream(), pom);
 
+	}
+
+	/** {@inheritDoc} */
+	public boolean isInstalled() {
+		return fileManager.exists("pom.xml");
 	}
 
 }

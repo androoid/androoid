@@ -1,8 +1,9 @@
 package io.androoid.roo.addon.suite.dependency.manager;
 
-import java.util.List;
-
+import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProvider;
 import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProviderId;
+
+import java.util.List;
 
 /**
  * DependencyManager operations interface defines all necessary operations to
@@ -31,4 +32,11 @@ public interface DependencyManagerOperations {
 	 * @return A List of DependencyManagerProviderId
 	 */
 	List<DependencyManagerProviderId> getProvidersId();
+
+	/**
+	 * Method that returns installed provider on generated project
+	 * 
+	 * @return DependencyManagerProvider
+	 */
+	DependencyManagerProvider getInstalledProvider();
 }
