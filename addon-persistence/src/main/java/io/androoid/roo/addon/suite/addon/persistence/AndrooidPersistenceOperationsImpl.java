@@ -2,7 +2,6 @@ package io.androoid.roo.addon.suite.addon.persistence;
 
 import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.felix.scr.annotations.Component;
@@ -62,7 +61,8 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 	
 	/** {@inheritDoc} */
 	public void setup() {
-		LOGGER.log(Level.INFO, "Configuring persistence...");
+		// Include gradle dependencies
+		
 	}
 
 

@@ -44,6 +44,11 @@
             <artifactId>io.androoid.roo.addon.suite.addon-advanced</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.androoid.roo.addon.suite</groupId>
+            <artifactId>io.androoid.roo.addon.suite.dependency.manager</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
 
 	<build>

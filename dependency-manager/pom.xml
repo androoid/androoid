@@ -14,10 +14,10 @@
 	    <version>1.0.0.BUILD-SNAPSHOT</version>
 	    <relativePath>../osgi-bundles</relativePath>
   	</parent>
-  	<artifactId>io.androoid.roo.addon.suite.addon.project</artifactId>
+  	<artifactId>io.androoid.roo.addon.suite.dependency.manager</artifactId>
   	<packaging>bundle</packaging>
-  	<name>Androoid - Add-On Project</name>
-    <description>Androoid Add-On that generates Android project structure using gradle.</description>
+  	<name>Androoid - Dependency Manager</name>
+    <description>Androoid Service that provides different ways to manage project dependencies</description>
     
     <!-- Add-On Properties -->
     <properties>
@@ -80,12 +80,6 @@
          <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-        </dependency>
-        <!-- Androoid Modules -->
-        <dependency>
-        	<groupId>io.androoid.roo.addon.suite</groupId>
-        	<artifactId>io.androoid.roo.addon.suite.dependency.manager</artifactId>
-        	<version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 </project>

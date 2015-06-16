@@ -11,7 +11,7 @@ package io.androoid.roo.addon.suite.addon.persistence;
 public interface AndrooidPersistenceOperations {
 
     /**
-     * Indicates if create an androoid project command 
+     * Indicates if androoid persistence command 
      * should be available.
      * 
      * @return true if it should be available, otherwise false

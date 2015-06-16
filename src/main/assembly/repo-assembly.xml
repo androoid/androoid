@@ -23,6 +23,8 @@
 				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.persistence
 				</include>
+				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.dependency.manager
+				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.roo-addon-suite
 				</include>
 			</includes>

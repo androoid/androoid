@@ -1,11 +1,13 @@
 package io.androoid.roo.addon.suite.addon.project;
 
 import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
+import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProviderId;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -61,20 +63,23 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 
 	/** {@inheritDoc} */
 	public boolean isCreateProjectAvailable() {
-		return !fileManager.exists("build.gradle")
+		return !fileManager.exists(pathResolver.getRoot().concat(
+				"/src/main/AndroidManifest.xml"))
 				&& !projectOperations.isFocusedProjectAvailable();
 	}
 
 	/** {@inheritDoc} */
 	public void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion,
-			AvailableSDKs targetSdkVersion) {
+			AvailableSDKs targetSdkVersion,
+			DependencyManagerProviderId dependencyManager) {
 
 		// Prints Android logo and start message
 		printAndroidLogo();
 
-		// TODO: Implements providers to select if wants to use gradle or maven.
-		// At this moment, generates only android projects using gradle
-		createDependencyManager(applicationId, minSdkVersion, targetSdkVersion);
+		// Creates dependency manager file
+		dependencyManager.getProvider().install(applicationId,
+				minSdkVersion.getApiLevel().toString(),
+				targetSdkVersion.getApiLevel().toString());
 
 		// Creates project structure
 		createProjectStructure(applicationId);
@@ -85,10 +90,14 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 
 	/** {@inheritDoc} */
 	public boolean isAndrooidProjectGenerated() {
-		return fileManager.exists("build.gradle")
-				&& !projectOperations.isFocusedProjectAvailable()
+		return !projectOperations.isFocusedProjectAvailable()
 				&& fileManager.exists(pathResolver.getRoot().concat(
 						"/src/main/AndroidManifest.xml"));
+	}
+
+	public DependencyManagerProviderId getProjectDependencyManager() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**
@@ -253,60 +262,13 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	}
 
 	/**
-	 * A private method which creates build.gradle file with necessary android
-	 * configuration
-	 * 
-	 * @param applicationId
-	 * @param minSdkVersion
-	 * @param targetSdkVersion
-	 */
-	private void createDependencyManager(JavaPackage applicationId,
-			AvailableSDKs minSdkVersion, AvailableSDKs targetSdkVersion) {
-
-		// Checking that build.gradle doesn't exists
-		Validate.isTrue(!fileManager.exists("build.gradle"),
-				"'build.gradle' file exists!");
-
-		final InputStream templateInputStream = FileUtils.getInputStream(
-				getClass(), "build.gradle-template");
-
-		OutputStream outputStream = null;
-
-		try {
-			// Read template and insert the user's package
-			String input = IOUtils.toString(templateInputStream);
-			input = input.replace("_COMPILE_SDK_VERSION_", targetSdkVersion
-					.getApiLevel().toString());
-			input = input.replace("_APPLICATION_ID_",
-					"\"".concat(applicationId.getFullyQualifiedPackageName())
-							.concat("\""));
-			input = input.replace("_MIN_SDK_VERSION_", minSdkVersion
-					.getApiLevel().toString());
-			input = input.replace("_TARGET_SDK_VERSION_", targetSdkVersion
-					.getApiLevel().toString());
-
-			// Output the file for the user
-			final MutableFile mutableFile = fileManager.createFile(pathResolver
-					.getRoot() + "/build.gradle");
-
-			outputStream = mutableFile.getOutputStream();
-			IOUtils.write(input, outputStream);
-		} catch (final IOException ioe) {
-			throw new IllegalStateException(
-					"Unable to create build.gradle file", ioe);
-		} finally {
-			IOUtils.closeQuietly(templateInputStream);
-			IOUtils.closeQuietly(outputStream);
-		}
-	}
-
-	/**
 	 * A private method which prints android logo on Spring Roo Shell only to
 	 * show user that android project will be generated
 	 * 
 	 */
 	private void printAndroidLogo() {
-		// TODO: Print Android logo and show some info message
-	}
+		LOGGER.log(Level.INFO, "Generating Android project...");
 
+		// TODO: Print Android logo with more info about Androoid version
+	}
 }
