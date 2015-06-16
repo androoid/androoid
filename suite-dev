@@ -1,21 +1,23 @@
 #!/bin/bash
 
-#PRG="$0"
-#
-#cd `dirname "$PRG"`
-#TARGET_FILE=`basename $PRG`
+PRG="$0"
 
-#while [ -L "$TARGET_FILE" ]
-#do
-#    TARGET_FILE=`readlink $TARGET_FILE`
-#    cd `dirname $TARGET_FILE`
-#    TARGET_FILE=`basename $TARGET_FILE`
-#done
-#
-#PHYS_DIR=`pwd -P`
-#this_file=$PHYS_DIR/$TARGET_FILE
+currentDir=$PWD
 
-this_file=`readlink -f $0`
+cd `dirname "$PRG"`
+TARGET_FILE=`basename $PRG`
+
+while [ -L "$TARGET_FILE" ]
+do
+    TARGET_FILE=`readlink $TARGET_FILE`
+    cd `dirname $TARGET_FILE`
+    TARGET_FILE=`basename $TARGET_FILE`
+done
+
+PHYS_DIR=`pwd -P`
+this_file=$PHYS_DIR/$TARGET_FILE
+
+#this_file=`readlink -f $0`
 this_dir=`dirname $this_file`
 
 echo ""
@@ -47,6 +49,7 @@ echo "Suite Home..................: $SUITE_HOME"
 echo "Suite target dir............: $SUITE_TARGET"
 echo "Suite cache dir.............: $SUITE_CACHE"
 echo "Suite bundle dir............: $SUITE_BUNDLES"
+echo "Current dir.................: $currentDir"
 echo ""
 
 # Suite: Remove OSGi cache and bundles if roo directory exists
@@ -101,6 +104,7 @@ if [ "$TERM_PROGRAM" = "Apple_Terminal" ]; then
 fi
 
 # Hop, hop, hop...
+cd $currentDir
 DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"
 PAUSE=
 #PAUSE="-Droo.pause=true"

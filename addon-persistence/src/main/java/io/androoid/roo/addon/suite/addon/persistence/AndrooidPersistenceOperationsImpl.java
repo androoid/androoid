@@ -96,7 +96,7 @@ public class AndrooidPersistenceOperationsImpl implements
 		OutputStream outputStream = null;
 
 		try {
-			// Read template and insert the user's package
+			// Read template and insert the current date
 			String input = IOUtils.toString(templateInputStream);
 			input = input.replace("_CURRENT_DATE_", new Date().toString());
 
@@ -113,6 +113,8 @@ public class AndrooidPersistenceOperationsImpl implements
 			IOUtils.closeQuietly(templateInputStream);
 			IOUtils.closeQuietly(outputStream);
 		}
+		
+		// Generate DatabaseConfigUtils
 
 	}
 

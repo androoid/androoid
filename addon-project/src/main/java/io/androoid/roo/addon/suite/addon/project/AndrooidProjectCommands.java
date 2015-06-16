@@ -56,6 +56,8 @@ public class AndrooidProjectCommands implements CommandMarker {
 	/**
 	 * This method registers the androoid project setup command.
 	 * 
+	 * TODO: Include dependencyManager parameter to select dependency manager to use like gradle or maven.
+	 * 
 	 * @param applicationId
 	 *            A String that identifies current generated project. Will be
 	 *            included on defaultConfig of build.gradle file
@@ -69,16 +71,13 @@ public class AndrooidProjectCommands implements CommandMarker {
 	 *            An integer designating the API Level that the application
 	 *            targets. If not set, the default value equals that given to
 	 *            minSdkVersion
-	 * @param dependencyManager
-	 *            A DependencyManager provider that allows Androoid to generate
-	 *            project using different dependency managers
 	 */
 	@CliCommand(value = "androoid project setup", help = "Generates Android Project structure")
 	public void projectSetup(
 			@CliOption(key = "applicationId", mandatory = true, help = "A String that identifies current generated project. (Ex: io.androoid.proof) ") JavaPackage applicationId,
 			@CliOption(key = "minSdkVersion", mandatory = true, help = "An integer designating the minimum API Level required for the application to run") AvailableSDKs minSdkVersion,
-			@CliOption(key = "targetSdkVersion", mandatory = false, help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion,
-			@CliOption(key = "dependencyManager", mandatory = false, help = "Dependency manager to use to generate project.") DependencyManagerProviderId dependencyManager) {
+			@CliOption(key = "targetSdkVersion", mandatory = false, help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion/*,
+			@CliOption(key = "dependencyManager", mandatory = false, help = "Dependency manager to use to generate project.") DependencyManagerProviderId dependencyManager*/) {
 
 		// Checking if targetSdkVersion param was defined on executed command
 		if (targetSdkVersion == null) {
@@ -87,14 +86,16 @@ public class AndrooidProjectCommands implements CommandMarker {
 
 		// Checking if dependencyManager was defined. If not, by default use
 		// Gradle
-		if (dependencyManager == null) {
+		// Show TODO comment on javadoc
+		/*if (dependencyManager == null) {
 			dependencyManager = dependencyManagerOperations
-					.getProviderByName("GRADLE");
-		}
+					.getProviderByName("MAVEN");
+		}*/
 
 		// Generating new androoid project structure
 		androoidOperations.setup(applicationId, minSdkVersion,
-				targetSdkVersion, dependencyManager);
+				targetSdkVersion, dependencyManagerOperations
+				.getProviderByName("MAVEN"));
 
 	}
 }
