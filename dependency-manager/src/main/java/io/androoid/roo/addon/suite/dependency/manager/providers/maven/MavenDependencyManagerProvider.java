@@ -2,11 +2,21 @@ package io.androoid.roo.addon.suite.dependency.manager.providers.maven;
 
 import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProvider;
 
+import java.io.InputStream;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.springframework.roo.model.JavaPackage;
+import org.springframework.roo.process.manager.FileManager;
+import org.springframework.roo.process.manager.MutableFile;
+import org.springframework.roo.project.PathResolver;
+import org.springframework.roo.support.util.FileUtils;
+import org.springframework.roo.support.util.XmlUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Maven dependency manager provider.
@@ -21,6 +31,19 @@ import org.springframework.roo.model.JavaPackage;
 @Service
 public class MavenDependencyManagerProvider implements
 		DependencyManagerProvider {
+
+	/**
+	 * Using the Roo file manager instead if java.io.File gives you automatic
+	 * rollback in case an Exception is thrown.
+	 */
+	@Reference
+	private FileManager fileManager;
+
+	/**
+	 * Get a reference to the PathResolver from the undelying OSGi container
+	 */
+	@Reference
+	private PathResolver pathResolver;
 
 	public static final String NAME = "MAVEN";
 
@@ -44,8 +67,36 @@ public class MavenDependencyManagerProvider implements
 
 	public void install(JavaPackage applicationId, String minSdkVersion,
 			String targetSdkVersion) {
-		// TODO Auto-generated method stub
-		
+		// Checking that build.gradle doesn't exists
+		Validate.isTrue(!fileManager.exists("pom.xml"),
+				"'pom.xml' file exists!");
+
+		// Load the pom template
+		final InputStream templateInputStream = FileUtils.getInputStream(
+				getClass(), "pom-template.xml");
+
+		final Document pom = XmlUtils.readXml(templateInputStream);
+		final Element root = pom.getDocumentElement();
+
+		Element groupIdElement = (Element) root.getElementsByTagName("groupId")
+				.item(0);
+		groupIdElement.setTextContent(applicationId
+				.getFullyQualifiedPackageName());
+
+		Element artifactIdElement = (Element) root
+				.getElementsByTagName("artifactId").item(0);
+		artifactIdElement.setTextContent(applicationId
+				.getFullyQualifiedPackageName());
+
+		Element platformElement = (Element) root
+				.getElementsByTagName("platform").item(0);
+		platformElement.setTextContent(minSdkVersion);
+
+		final MutableFile mutableFile = fileManager.createFile(pathResolver
+				.getRoot() + "/pom.xml");
+
+		XmlUtils.writeXml(mutableFile.getOutputStream(), pom);
+
 	}
 
 }

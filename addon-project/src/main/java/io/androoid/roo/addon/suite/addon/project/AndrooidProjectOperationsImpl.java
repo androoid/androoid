@@ -90,8 +90,7 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 
 	/** {@inheritDoc} */
 	public boolean isAndrooidProjectGenerated() {
-		return !projectOperations.isFocusedProjectAvailable()
-				&& fileManager.exists(pathResolver.getRoot().concat(
+		return fileManager.exists(pathResolver.getRoot().concat(
 						"/src/main/AndroidManifest.xml"));
 	}
 
