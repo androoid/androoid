@@ -113,4 +113,18 @@ public class AndrooidPersistenceOperationsImpl implements
 				projectOperations.getFocusedModuleName(), dependencies);
 	}
 
+	/**
+	 * FEATURE METHODS
+	 */
+	
+	public String getName() {
+		return FEATURE_ANDROOID_PERSISTENCE;
+	}
+
+	public boolean isInstalledInModule(String moduleName) {
+		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(
+				Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
+		return fileManager.exists(ormLiteConfigPath);
+	}
+
 }

@@ -1,5 +1,7 @@
 package io.androoid.roo.addon.suite.addon.persistence;
 
+import org.springframework.roo.project.Feature;
+
 
 /**
  * Interface of Androoid persistence commands that are available 
@@ -8,7 +10,9 @@ package io.androoid.roo.addon.suite.addon.persistence;
  * @author Juan Carlos García
  * @since 1.0
  */
-public interface AndrooidPersistenceOperations {
+public interface AndrooidPersistenceOperations extends Feature{
+	
+	public static final String FEATURE_ANDROOID_PERSISTENCE = "androoid-persistence";
 
     /**
      * Indicates if androoid persistence command 
