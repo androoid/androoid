@@ -1,8 +1,6 @@
 package io.androoid.roo.addon.suite.addon.project;
 
 import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
-import io.androoid.roo.addon.suite.dependency.manager.DependencyManagerOperations;
-import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProviderId;
 
 import java.util.logging.Logger;
 
@@ -21,7 +19,7 @@ import org.springframework.roo.shell.CommandMarker;
  * 
  * 
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 @Component
 @Service
@@ -32,15 +30,7 @@ public class AndrooidProjectCommands implements CommandMarker {
 	 */
 	private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	/**
-	 * Get a reference to the AndrooidProjectOperations from the underlying OSGi
-	 * container
-	 */
-	@Reference
-	private AndrooidProjectOperations androoidOperations;
-
-	@Reference
-	private DependencyManagerOperations dependencyManagerOperations;
+	@Reference private AndrooidProjectOperations androoidOperations;
 
 	/**
 	 * Project generation is only available if other project was not generated
@@ -56,7 +46,6 @@ public class AndrooidProjectCommands implements CommandMarker {
 	/**
 	 * This method registers the androoid project setup command.
 	 * 
-	 * TODO: Include dependencyManager parameter to select dependency manager to use like gradle or maven.
 	 * 
 	 * @param applicationId
 	 *            A String that identifies current generated project. Will be
@@ -76,26 +65,16 @@ public class AndrooidProjectCommands implements CommandMarker {
 	public void projectSetup(
 			@CliOption(key = "applicationId", mandatory = true, help = "A String that identifies current generated project. (Ex: io.androoid.proof) ") JavaPackage applicationId,
 			@CliOption(key = "minSdkVersion", mandatory = true, help = "An integer designating the minimum API Level required for the application to run") AvailableSDKs minSdkVersion,
-			@CliOption(key = "targetSdkVersion", mandatory = false, help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion/*,
-			@CliOption(key = "dependencyManager", mandatory = false, help = "Dependency manager to use to generate project.") DependencyManagerProviderId dependencyManager*/) {
+			@CliOption(key = "targetSdkVersion", mandatory = false, help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion) {
 
 		// Checking if targetSdkVersion param was defined on executed command
 		if (targetSdkVersion == null) {
 			targetSdkVersion = minSdkVersion;
 		}
 
-		// Checking if dependencyManager was defined. If not, by default use
-		// Gradle
-		// Show TODO comment on javadoc
-		/*if (dependencyManager == null) {
-			dependencyManager = dependencyManagerOperations
-					.getProviderByName("MAVEN");
-		}*/
-
 		// Generating new androoid project structure
 		androoidOperations.setup(applicationId, minSdkVersion,
-				targetSdkVersion, dependencyManagerOperations
-				.getProviderByName("MAVEN"));
+				targetSdkVersion);
 
 	}
 }

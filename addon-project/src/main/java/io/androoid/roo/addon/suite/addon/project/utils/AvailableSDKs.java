@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * use on Android project generation.
  * 
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 public enum AvailableSDKs {
 	BASE(1), BASE_1_1(2), CUPCAKE(3), DONUT(4), ECLAIR(5), ECLAIR_0_1(6), ECLAIR_MR1(

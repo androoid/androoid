@@ -8,7 +8,7 @@
 	<packaging>apk</packaging>
 
 	<properties>
-		<roo.version>2.0.0.M1</roo.version>
+		<roo.version>2.0.0.BUILD-SNAPSHOT</roo.version>
 		<!-- use UTF-8 for everything -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -78,5 +78,3 @@
 	</build>
 
 </project>
-
-

@@ -36,7 +36,7 @@
   
   <!-- Androoid Properties -->
   <properties>
-    <roo.version>2.0.0.M1</roo.version>
+    <roo.version>2.0.0.BUILD-SNAPSHOT</roo.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <osgi.version>5.0.0</osgi.version>
     <scr.plugin.version>1.20.0</scr.plugin.version>
@@ -48,7 +48,6 @@
     <module>addon-project</module>
     <module>addon-persistence</module>
     <module>addon-advanced</module>
-    <module>dependency-manager</module>
     <!-- Generates the subsystem .esa file -->
     <module>roo-addon-suite</module>
     <!-- Create the local repository and publish it -->

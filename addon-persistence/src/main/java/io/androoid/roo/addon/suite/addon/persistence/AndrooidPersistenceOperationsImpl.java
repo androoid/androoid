@@ -1,13 +1,13 @@
 package io.androoid.roo.addon.suite.addon.persistence;
 
 import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
-import io.androoid.roo.addon.suite.dependency.manager.DependencyManagerOperations;
-import io.androoid.roo.addon.suite.dependency.manager.providers.DependencyManagerProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -17,15 +17,19 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
+import org.springframework.roo.project.Dependency;
+import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.support.util.FileUtils;
+import org.springframework.roo.support.util.XmlUtils;
+import org.w3c.dom.Element;
 
 /**
  * Implementation of {@link AndrooidPersistenceOperations} interface.
- *
+ * 
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 @Component
 @Service
@@ -37,57 +41,30 @@ public class AndrooidPersistenceOperationsImpl implements
 	 */
 	private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	/**
-	 * Using the Roo file manager instead if java.io.File gives you automatic
-	 * rollback in case an Exception is thrown.
-	 */
 	@Reference
 	private FileManager fileManager;
-
-	/**
-	 * Get a reference to the ProjectOperations from the underlying OSGi
-	 * container.
-	 */
 	@Reference
 	private ProjectOperations projectOperations;
-
-	/**
-	 * Get a reference to the AndrooidProjectOperations from the underlying OSGi
-	 * container
-	 */
 	@Reference
 	private AndrooidProjectOperations androoidProjectOperations;
-
-	/**
-	 * Get a reference to the DependencyManagerOperations from the underlying
-	 * OSGi container
-	 */
-	@Reference
-	private DependencyManagerOperations dependencyManagerOperations;
-
-	/**
-	 * Get a reference to the PathResolver from the undelying OSGi container
-	 */
 	@Reference
 	private PathResolver pathResolver;
 
 	/** {@inheritDoc} */
 	public boolean isPersistenceSetupAvailable() {
-		return androoidProjectOperations.isAndrooidProjectGenerated();
+		return projectOperations.isFeatureInstalled("androoid-project");
 	}
 
 	/** {@inheritDoc} */
 	public void setup() {
-
 		// Install necessary dependencies
-		dependencyManagerOperations.getInstalledProvider().addDependency(
-				"com.j256.ormlite", "ormlite-core", "4.48");
-		dependencyManagerOperations.getInstalledProvider().addDependency(
-				"com.j256.ormlite", "ormlite-android", "4.48");
+		installDependencies();
 
 		// Generate ormlite_config.txt file on src/main/res/raw folder
+		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(
+				Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
 		Validate.isTrue(
-				!fileManager.exists("src/main/res/raw/ormlite_config.txt"),
+				!fileManager.exists(ormLiteConfigPath),
 				"'ormlite_config.txt' file exists!");
 
 		final InputStream templateInputStream = FileUtils.getInputStream(
@@ -101,8 +78,7 @@ public class AndrooidPersistenceOperationsImpl implements
 			input = input.replace("_CURRENT_DATE_", new Date().toString());
 
 			// Output the file for the user
-			final MutableFile mutableFile = fileManager.createFile(pathResolver
-					.getRoot() + "/src/main/res/raw/ormlite_config.txt");
+			final MutableFile mutableFile = fileManager.createFile(ormLiteConfigPath);
 
 			outputStream = mutableFile.getOutputStream();
 			IOUtils.write(input, outputStream);
@@ -113,9 +89,28 @@ public class AndrooidPersistenceOperationsImpl implements
 			IOUtils.closeQuietly(templateInputStream);
 			IOUtils.closeQuietly(outputStream);
 		}
-		
+
 		// Generate DatabaseConfigUtils
 
+	}
+
+	/**
+	 * Method that uses configuration.xml file to install dependencies on
+	 * current pom.xml
+	 */
+	private void installDependencies() {
+		final Element configuration = XmlUtils.getConfiguration(getClass());
+		// Install dependencies
+		List<Element> elements = XmlUtils.findElements(
+				"/configuration/androoid/dependencies/dependency",
+				configuration);
+		List<Dependency> dependencies = new ArrayList<Dependency>();
+		for (Element element : elements) {
+			Dependency dependency = new Dependency(element);
+			dependencies.add(dependency);
+		}
+		projectOperations.addDependencies(
+				projectOperations.getFocusedModuleName(), dependencies);
 	}
 
 }

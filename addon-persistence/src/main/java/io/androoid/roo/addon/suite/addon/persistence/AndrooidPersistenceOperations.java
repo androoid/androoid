@@ -6,7 +6,7 @@ package io.androoid.roo.addon.suite.addon.persistence;
  * via the Roo shell.
  *
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 public interface AndrooidPersistenceOperations {
 

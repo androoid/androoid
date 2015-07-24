@@ -1,5 +1,12 @@
-package io.androoid.roo.addon.suite.dependency.manager.providers.maven;
+package io.androoid.roo.addon.suite.addon.project.packaging;
 
+import static org.springframework.roo.project.Path.SRC_MAIN;
+import static org.springframework.roo.project.Path.SRC_MAIN_JAVA;
+import static org.springframework.roo.project.Path.SRC_MAIN_RES;
+import static org.springframework.roo.project.Path.SRC_TEST_JAVA;
+import static org.springframework.roo.project.Path.SRC_TEST_RESOURCES;
+
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.felix.scr.annotations.Component;
@@ -17,7 +24,7 @@ import org.springframework.roo.project.packaging.PackagingProvider;
  * Add-On Suite to be able to create new APK packaging POMs.
  * 
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 @Component
 @Service
@@ -37,7 +44,8 @@ public class ApkPackaging extends AbstractPackagingProvider {
 	}
 
 	public Collection<Path> getPaths() {
-		return null;
+        return Arrays.asList(SRC_MAIN, SRC_MAIN_JAVA, SRC_MAIN_RES, SRC_TEST_JAVA,
+                SRC_TEST_RESOURCES);
 	}
 
 	public boolean isDefault() {

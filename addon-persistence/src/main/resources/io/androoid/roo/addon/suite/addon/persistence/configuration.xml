@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+	<androoid>
+		<dependencies>
+			<dependency>
+				<groupId>com.j256.ormlite</groupId>
+				<artifactId>ormlite-core</artifactId>
+				<version>4.48</version>
+			</dependency>
+			<dependency>
+				<groupId>com.j256.ormlite</groupId>
+				<artifactId>ormlite-android</artifactId>
+				<version>4.48</version>
+			</dependency>
+		</dependencies>
+	</androoid>
+</configuration>

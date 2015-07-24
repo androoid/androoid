@@ -16,7 +16,7 @@ import org.springframework.roo.shell.CommandMarker;
  * 
  * 
  * @author Juan Carlos García
- * @since 1.0.0
+ * @since 1.0
  */
 @Component
 @Service
@@ -27,10 +27,6 @@ public class AndrooidPersistenceCommands implements CommandMarker {
 	 */
 	private Logger LOGGER = Logger.getLogger(getClass().getName());
 	
-	/**
-	 * Get a reference to the AndrooidPersistenceOperations from the underlying OSGi
-	 * container
-	 */
 	@Reference
 	private AndrooidPersistenceOperations persistenceOperations;
 
