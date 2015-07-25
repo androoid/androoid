@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
 	<androoid>
+	    <properties>
+			<androoid.version>1.0.0.BUILD-SNAPSHOT</androoid.version>	        
+	    </properties>
 		<dependencies>
+		    <!-- Androoid dependencies -->
+		    <dependency>
+		        <groupId>io.androoid.roo.addon.suite</groupId>
+		        <artifactId>io.androoid.roo.addon.suite.addon.persistence</artifactId>
+		        <version>${androoid.version}</version>
+		    </dependency>
+		    <!-- ORMLite dependencies -->
 			<dependency>
 				<groupId>com.j256.ormlite</groupId>
 				<artifactId>ormlite-core</artifactId>
