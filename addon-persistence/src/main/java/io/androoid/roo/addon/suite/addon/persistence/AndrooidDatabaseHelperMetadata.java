@@ -162,11 +162,11 @@ public class AndrooidDatabaseHelperMetadata extends
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
 		JavadocComment comment = new JavadocComment(
-				"What to do when your database needs to be created. Usually this entails creating the tables and loading any initial data. "
-						+ "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one returned by getConnectionSource(). "
-						+ "If you use your own, a recursive call or other unexpected results may result."
-						+ "@param database         Database being created. "
-						+ "@param connectionSource");
+				"What to do when your database needs to be created. Usually this entails creating the tables and loading any \n initial data. \n \n \n "
+						+ "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n returned by getConnectionSource(). "
+						+ "If you use your own, a recursive call or other unexpected results may result. \n \n"
+						+ "@param database         Database being created. \n"
+						+ "@param connectionSource \n");
 		commentStructure.addComment(comment, CommentLocation.BEGINNING);
 		methodBuilder.setCommentStructure(commentStructure);
 
