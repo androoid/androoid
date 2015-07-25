@@ -76,7 +76,7 @@ public class AndrooidDatabaseHelperMetadata extends
 	 *            the name of the ITD to be created (required)
 	 * @param governorPhysicalTypeMetadata
 	 *            the governor (required)
-	 * @param dbName
+	 * @param dbName database name to use
 	 */
 	public AndrooidDatabaseHelperMetadata(final String identifier,
 			final JavaType aspectName,
@@ -94,7 +94,7 @@ public class AndrooidDatabaseHelperMetadata extends
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
 				Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING,
-				dbName.concat(".db"));
+				"\"".concat(dbName).concat(".db").concat("\""));
 		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(
 				getId(), Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_VERSION"), JavaType.INT_PRIMITIVE,
@@ -119,6 +119,7 @@ public class AndrooidDatabaseHelperMetadata extends
 
 		// Generate necessary methods
 		builder.addMethod(getOnCreateMethod());
+		builder.addMethod(getOnUpgradeMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -173,6 +174,66 @@ public class AndrooidDatabaseHelperMetadata extends
 		return methodBuilder; // Build and return a MethodMetadata
 		// instance
 	}
+	
+	/**
+	 * Gets <code>onUpgrade</code> method. <br>
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnUpgradeMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(new AnnotatedJavaType(new JavaType(
+				"android.database.sqlite.SQLiteDatabase")));
+		parameterTypes.add(new AnnotatedJavaType(new JavaType(
+				"com.j256.ormlite.support.ConnectionSource")));
+		parameterTypes.add(new AnnotatedJavaType(JavaType.INT_PRIMITIVE));
+		parameterTypes.add(new AnnotatedJavaType(JavaType.INT_PRIMITIVE));
+
+		// Define method annotations
+		List<AnnotationMetadataBuilder> annotations = new ArrayList<AnnotationMetadataBuilder>();
+		annotations
+				.add(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("database"));
+		parameterNames.add(new JavaSymbolName("connectionSource"));
+		parameterNames.add(new JavaSymbolName("oldVersion"));
+		parameterNames.add(new JavaSymbolName("newVersion"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		buildOnUpgradeMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+				getId(), Modifier.PUBLIC, new JavaSymbolName("onUpgrade"),
+				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.setAnnotations(annotations);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"What to do when your database needs to be updated. This could mean careful migration of old data to new data.\n" +
+				"Maybe adding or deleting database columns, etc.. \n" +
+			    "\n"+
+				"\n"+
+			    "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n"+
+			    "returned by getConnectionSource(). If you use your own, a recursive call or other unexpected results may result.\n"+
+			    "\n"+
+			    "\n"+
+			    "@param database         Database being upgraded.\n"+
+			    "@param connectionSource To use get connections to the database to be updated.\n"+
+			    "@param oldVersion       The version of the current database so we can know what to do to the database.\n"+
+			    "@param newVersion\n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
 
 	/**
 	 * Builds body method for <code>onCreate</code> method. <br>
@@ -185,6 +246,39 @@ public class AndrooidDatabaseHelperMetadata extends
 		bodyBuilder.indent();
 
 		// TODO: Generate dynamic tables
+		bodyBuilder.indentRemove();
+
+		// } catch (SQLException e) {
+		bodyBuilder
+				.appendFormalLine(String.format("} catch (%s e) {",
+						new JavaType("java.sql.SQLException")
+								.getNameIncludingTypeParameters(false,
+										importResolver)));
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+
+		// }
+		bodyBuilder.appendFormalLine("}");
+
+	}
+	
+	/**
+	 * Builds body method for <code>onUpgrade</code> method. <br>
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnUpgradeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// TODO: Generate dynamic tables
+		
+		// onCreate(database, connectionSource);
+		bodyBuilder.appendFormalLine("onCreate(database, connectionSource);");
 		bodyBuilder.indentRemove();
 
 		// } catch (SQLException e) {
