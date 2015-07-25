@@ -22,6 +22,7 @@ import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMeta
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
 import org.springframework.roo.model.ImportRegistrationResolver;
+import org.springframework.roo.model.JavaPackage;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
@@ -76,12 +77,12 @@ public class AndrooidDatabaseHelperMetadata extends
 	 *            the name of the ITD to be created (required)
 	 * @param governorPhysicalTypeMetadata
 	 *            the governor (required)
-	 * @param dbName database name to use
+	 * @param projectPackage
+	 * 
 	 */
 	public AndrooidDatabaseHelperMetadata(final String identifier,
 			final JavaType aspectName,
-			final PhysicalTypeMetadata governorPhysicalTypeMetadata,
-			String dbName) {
+			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage) {
 		super(identifier, aspectName, governorPhysicalTypeMetadata);
 		Validate.isTrue(
 				isValid(identifier),
@@ -93,8 +94,8 @@ public class AndrooidDatabaseHelperMetadata extends
 		// Adding constants
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
 				Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
-				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING,
-				"\"".concat(dbName).concat(".db").concat("\""));
+				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING, "\""
+						.concat(projectPackage.getLastElement()).concat(".db").concat("\""));
 		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(
 				getId(), Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_VERSION"), JavaType.INT_PRIMITIVE,
@@ -114,7 +115,7 @@ public class AndrooidDatabaseHelperMetadata extends
 				"android.content.Context")));
 		constructor.setParameterNames(paramNames);
 		constructor.setParameterTypes(paramTypes);
-		constructor.setBodyBuilder(getConstructorBody());
+		constructor.setBodyBuilder(getConstructorBody(projectPackage.getFullyQualifiedPackageName()));
 		builder.addConstructor(constructor);
 
 		// Generate necessary methods
@@ -174,7 +175,7 @@ public class AndrooidDatabaseHelperMetadata extends
 		return methodBuilder; // Build and return a MethodMetadata
 		// instance
 	}
-	
+
 	/**
 	 * Gets <code>onUpgrade</code> method. <br>
 	 * 
@@ -216,18 +217,18 @@ public class AndrooidDatabaseHelperMetadata extends
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
 		JavadocComment comment = new JavadocComment(
-				"What to do when your database needs to be updated. This could mean careful migration of old data to new data.\n" +
-				"Maybe adding or deleting database columns, etc.. \n" +
-			    "\n"+
-				"\n"+
-			    "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n"+
-			    "returned by getConnectionSource(). If you use your own, a recursive call or other unexpected results may result.\n"+
-			    "\n"+
-			    "\n"+
-			    "@param database         Database being upgraded.\n"+
-			    "@param connectionSource To use get connections to the database to be updated.\n"+
-			    "@param oldVersion       The version of the current database so we can know what to do to the database.\n"+
-			    "@param newVersion\n");
+				"What to do when your database needs to be updated. This could mean careful migration of old data to new data.\n"
+						+ "Maybe adding or deleting database columns, etc.. \n"
+						+ "\n"
+						+ "\n"
+						+ "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n"
+						+ "returned by getConnectionSource(). If you use your own, a recursive call or other unexpected results may result.\n"
+						+ "\n"
+						+ "\n"
+						+ "@param database         Database being upgraded.\n"
+						+ "@param connectionSource To use get connections to the database to be updated.\n"
+						+ "@param oldVersion       The version of the current database so we can know what to do to the database.\n"
+						+ "@param newVersion\n");
 		commentStructure.addComment(comment, CommentLocation.BEGINNING);
 		methodBuilder.setCommentStructure(commentStructure);
 
@@ -264,7 +265,7 @@ public class AndrooidDatabaseHelperMetadata extends
 		bodyBuilder.appendFormalLine("}");
 
 	}
-	
+
 	/**
 	 * Builds body method for <code>onUpgrade</code> method. <br>
 	 * 
@@ -276,7 +277,7 @@ public class AndrooidDatabaseHelperMetadata extends
 		bodyBuilder.indent();
 
 		// TODO: Generate dynamic tables
-		
+
 		// onCreate(database, connectionSource);
 		bodyBuilder.appendFormalLine("onCreate(database, connectionSource);");
 		bodyBuilder.indentRemove();
@@ -303,10 +304,14 @@ public class AndrooidDatabaseHelperMetadata extends
 	 * 
 	 * @return bodybuilder
 	 */
-	private InvocableMemberBodyBuilder getConstructorBody() {
+	private InvocableMemberBodyBuilder getConstructorBody(String currentPackage) {
 		final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
 		bodyBuilder
-				.appendFormalLine("super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);");
+				.appendFormalLine(String
+						.format("super(context, DATABASE_NAME, null, DATABASE_VERSION, %s.raw.ormlite_config);",
+								new JavaType(currentPackage.concat(".R"))
+										.getNameIncludingTypeParameters(false,
+												importResolver)));
 
 		return bodyBuilder;
 	}

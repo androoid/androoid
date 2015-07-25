@@ -5,7 +5,7 @@ import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Level;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -186,6 +186,11 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		Element platformElement = (Element) root.getElementsByTagName(
 				"platform").item(0);
 		platformElement.setTextContent(minSdkVersion.getApiLevel().toString());
+		
+        final List<Element> versionElements = XmlUtils.findElements("//*[.='JAVA_VERSION']", root);
+        for (final Element versionElement : versionElements) {
+            versionElement.setTextContent("1.7");
+        }
 
 		final MutableFile pomMutableFile = fileManager.createFile(pathResolver
 				.getRoot() + "/pom.xml");

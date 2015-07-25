@@ -10,6 +10,7 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
 import org.springframework.roo.classpath.itd.AbstractItdMetadataProvider;
 import org.springframework.roo.classpath.itd.ItdTypeDetailsProvidingMetadataItem;
+import org.springframework.roo.model.JavaPackage;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.ProjectOperations;
@@ -79,12 +80,11 @@ public class AndrooidDatabaseHelperMetadataProvider extends
 			final PhysicalTypeMetadata governorPhysicalTypeMetadata,
 			final String itdFilename) {
 		
-		// Getting DB Name
-		String dbName = projectOperations.getFocusedTopLevelPackage().getLastElement();
-
+		// Getting Project Package
+		JavaPackage projectPackage = projectOperations.getFocusedTopLevelPackage();
 
 		return new AndrooidDatabaseHelperMetadata(metadataIdentificationString, aspectName,
-				governorPhysicalTypeMetadata, dbName);
+				governorPhysicalTypeMetadata, projectPackage);
 	}
 
 	public String getProvidesType() {

@@ -107,7 +107,7 @@ public class AndrooidDatabaseConfigMetadata extends
 
 		// Adding throws
 		methodBuilder.addThrowsType(new JavaType("java.io.IOException"));
-		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException;"));
+		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException"));
 
 		// Adding params
 		methodBuilder.addParameter("args", JavaType.STRING_ARRAY);
