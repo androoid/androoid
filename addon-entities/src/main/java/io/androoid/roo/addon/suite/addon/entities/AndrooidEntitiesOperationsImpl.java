@@ -1,7 +1,11 @@
 package io.androoid.roo.addon.suite.addon.entities;
 
+import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
+
 import java.io.File;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.Validate;
@@ -15,9 +19,13 @@ import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaType;
+import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
+import org.springframework.roo.project.Property;
+import org.springframework.roo.support.util.XmlUtils;
+import org.w3c.dom.Element;
 
 /**
  * Implementation of {@link AndrooidEntitiesOperations} interface.
@@ -54,6 +62,10 @@ public class AndrooidEntitiesOperationsImpl implements
 
 	/** {@inheritDoc} */
 	public void createEntity(JavaType entity) {
+		// Install necessary dependencies
+		installDependencies();
+		
+		// Generate entity
 		int modifier = Modifier.PUBLIC;
 		final String declaredByMetadataId = PhysicalTypeIdentifier
 				.createIdentifier(entity,
@@ -74,9 +86,39 @@ public class AndrooidEntitiesOperationsImpl implements
 		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
 				"com.j256.ormlite.table.DatabaseTable")));
 		
-		// TODO: Include @AndrooidEntity annotation
-
+		// Including @AndrooidEntity annotation
+		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
+				AndrooidEntity.class)));
+		
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
+	
+	/**
+	 * Method that uses configuration.xml file to install dependencies and
+	 * properties on current pom.xml
+	 */
+	private void installDependencies() {
+		final Element configuration = XmlUtils.getConfiguration(getClass());
+
+		// Add properties
+		List<Element> properties = XmlUtils.findElements(
+				"/configuration/androoid/properties/*", configuration);
+		for (Element property : properties) {
+			projectOperations.addProperty(projectOperations
+					.getFocusedModuleName(), new Property(property));
+		}
+
+		// Add dependencies
+		List<Element> elements = XmlUtils.findElements(
+				"/configuration/androoid/dependencies/dependency",
+				configuration);
+		List<Dependency> dependencies = new ArrayList<Dependency>();
+		for (Element element : elements) {
+			Dependency dependency = new Dependency(element);
+			dependencies.add(dependency);
+		}
+		projectOperations.addDependencies(
+				projectOperations.getFocusedModuleName(), dependencies);
 	}
 
 }
