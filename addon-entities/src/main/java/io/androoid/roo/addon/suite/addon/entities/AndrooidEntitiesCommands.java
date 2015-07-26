@@ -1,12 +1,16 @@
 package io.androoid.roo.addon.suite.addon.entities;
 
+import static org.springframework.roo.shell.OptionContexts.UPDATE_PROJECT;
+
 import java.util.logging.Logger;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.springframework.roo.model.JavaType;
 import org.springframework.roo.shell.CliAvailabilityIndicator;
 import org.springframework.roo.shell.CliCommand;
+import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
 
 /**
@@ -44,11 +48,12 @@ public class AndrooidEntitiesCommands implements CommandMarker {
 	/**
 	 * This method registers the androoid entity command.
 	 * 
+	 * @param class
 	 */
 	@CliCommand(value = "androoid entity", help = "Creates new entity on current Androoid Project.")
-	public void createEntity() {
+	public void createEntity(
+			@CliOption(key = "class", optionContext = UPDATE_PROJECT, mandatory = true, help = "Name of the entity to create. (Ex: ~.domain.MyEntity)") final JavaType entity) {
 		// Creating new entity
-		entityOperations.createEntity();
-
+		entityOperations.createEntity(entity);
 	}
 }

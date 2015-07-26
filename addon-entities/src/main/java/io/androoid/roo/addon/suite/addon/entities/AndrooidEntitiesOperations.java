@@ -1,5 +1,7 @@
 package io.androoid.roo.addon.suite.addon.entities;
 
+import org.springframework.roo.model.JavaType;
+
 /**
  * Interface of Androoid entities commands that are available via the Roo shell.
  * 
@@ -18,7 +20,8 @@ public interface AndrooidEntitiesOperations {
 	/**
 	 * Creates new entity on Android Project
 	 * 
+	 * @param Name of the entity to create
 	 */
-	void createEntity();
+	void createEntity(JavaType entity);
 
 }
