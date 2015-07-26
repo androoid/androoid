@@ -47,6 +47,7 @@
     <module>osgi-bundles</module>
     <module>addon-project</module>
     <module>addon-persistence</module>
+    <module>addon-entities</module>
     <!-- Generates the subsystem .esa file -->
     <module>roo-addon-suite</module>
     <!-- Create the local repository and publish it -->
