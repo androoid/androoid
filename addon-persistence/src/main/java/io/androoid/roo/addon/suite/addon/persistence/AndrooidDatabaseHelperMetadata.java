@@ -10,7 +10,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.roo.classpath.PhysicalTypeIdentifierNamingUtils;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
-import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
 import org.springframework.roo.classpath.details.FieldMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
@@ -93,30 +92,17 @@ public class AndrooidDatabaseHelperMetadata extends
 
 		// Adding constants
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
-				Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
+				Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING, "\""
 						.concat(projectPackage.getLastElement()).concat(".db").concat("\""));
 		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(
-				getId(), Modifier.PRIVATE + Modifier.STATIC + Modifier.FINAL,
+				getId(), Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_VERSION"), JavaType.INT_PRIMITIVE,
 				"1");
 		builder.addField(databaseName);
 		builder.addField(databaseVersion);
 
 		// TODO: Generate dynamic fields
-
-		// Generating constructor
-		ConstructorMetadataBuilder constructor = new ConstructorMetadataBuilder(
-				getId());
-		List<JavaSymbolName> paramNames = new ArrayList<JavaSymbolName>();
-		List<AnnotatedJavaType> paramTypes = new ArrayList<AnnotatedJavaType>();
-		paramNames.add(new JavaSymbolName("context"));
-		paramTypes.add(new AnnotatedJavaType(new JavaType(
-				"android.content.Context")));
-		constructor.setParameterNames(paramNames);
-		constructor.setParameterTypes(paramTypes);
-		constructor.setBodyBuilder(getConstructorBody(projectPackage.getFullyQualifiedPackageName()));
-		builder.addConstructor(constructor);
 
 		// Generate necessary methods
 		builder.addMethod(getOnCreateMethod());
@@ -126,6 +112,7 @@ public class AndrooidDatabaseHelperMetadata extends
 		itdTypeDetails = builder.build();
 
 	}
+
 
 	/**
 	 * Gets <code>onCreate</code> method. <br>
@@ -242,28 +229,7 @@ public class AndrooidDatabaseHelperMetadata extends
 	 * @param bodyBuilder
 	 */
 	private void buildOnCreateMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
-		// try {
-		bodyBuilder.appendFormalLine("try {");
-		bodyBuilder.indent();
-
 		// TODO: Generate dynamic tables
-		bodyBuilder.indentRemove();
-
-		// } catch (SQLException e) {
-		bodyBuilder
-				.appendFormalLine(String.format("} catch (%s e) {",
-						new JavaType("java.sql.SQLException")
-								.getNameIncludingTypeParameters(false,
-										importResolver)));
-		bodyBuilder.indent();
-
-		// e.printStackTrace();
-		bodyBuilder.appendFormalLine("e.printStackTrace();");
-		bodyBuilder.indentRemove();
-
-		// }
-		bodyBuilder.appendFormalLine("}");
-
 	}
 
 	/**
@@ -272,48 +238,7 @@ public class AndrooidDatabaseHelperMetadata extends
 	 * @param bodyBuilder
 	 */
 	private void buildOnUpgradeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
-		// try {
-		bodyBuilder.appendFormalLine("try {");
-		bodyBuilder.indent();
-
 		// TODO: Generate dynamic tables
-
-		// onCreate(database, connectionSource);
-		bodyBuilder.appendFormalLine("onCreate(database, connectionSource);");
-		bodyBuilder.indentRemove();
-
-		// } catch (SQLException e) {
-		bodyBuilder
-				.appendFormalLine(String.format("} catch (%s e) {",
-						new JavaType("java.sql.SQLException")
-								.getNameIncludingTypeParameters(false,
-										importResolver)));
-		bodyBuilder.indent();
-
-		// e.printStackTrace();
-		bodyBuilder.appendFormalLine("e.printStackTrace();");
-		bodyBuilder.indentRemove();
-
-		// }
-		bodyBuilder.appendFormalLine("}");
-
-	}
-
-	/**
-	 * Generates constructor body of DatabaseHelper .aj
-	 * 
-	 * @return bodybuilder
-	 */
-	private InvocableMemberBodyBuilder getConstructorBody(String currentPackage) {
-		final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
-		bodyBuilder
-				.appendFormalLine(String
-						.format("super(context, DATABASE_NAME, null, DATABASE_VERSION, %s.raw.ormlite_config);",
-								new JavaType(currentPackage.concat(".R"))
-										.getNameIncludingTypeParameters(false,
-												importResolver)));
-
-		return bodyBuilder;
 	}
 
 	@Override

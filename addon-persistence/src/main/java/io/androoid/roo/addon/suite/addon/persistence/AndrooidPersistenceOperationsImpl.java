@@ -24,7 +24,12 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
+import org.springframework.roo.model.ImportRegistrationResolver;
+import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
@@ -88,36 +93,35 @@ public class AndrooidPersistenceOperationsImpl implements
 	 * Method to generate DatabaseHelper.java on src/main/java/${package}/utils
 	 */
 	private void createDatabaseHelper() {
-		// Getting current package
-		String utilsPath = projectOperations.getFocusedTopLevelPackage()
+		String projectPackage = projectOperations.getFocusedTopLevelPackage()
 				.getFullyQualifiedPackageName().concat(".utils");
-
-		int modifier = Modifier.PUBLIC;
-		JavaType target = new JavaType(utilsPath.concat(".DatabaseHelper"));
-		final String declaredByMetadataId = PhysicalTypeIdentifier
-				.createIdentifier(target,
-						pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
-		File targetFile = new File(
-				typeLocationService
-						.getPhysicalTypeCanonicalPath(declaredByMetadataId));
-		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists",
-				target);
-
-		// Prepare class builder
-		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
-				declaredByMetadataId, modifier, target,
-				PhysicalTypeCategory.CLASS);
-
-		// DatabaseConfigUtils extends OrmLiteSqliteOpenHelper
-		cidBuilder.addExtendsTypes(new JavaType(
-				"com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper"));
-
-		// Including AndrooidDatabaseConfig annotation
-		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
-				AndrooidDatabaseHelper.class)));
-
-		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
-
+		final JavaType javaType = new JavaType(projectPackage
+				+ ".DatabaseHelper");
+		final String physicalPath = pathResolver.getFocusedCanonicalPath(
+				Path.SRC_MAIN_JAVA, javaType);
+		if (fileManager.exists(physicalPath)) {
+			return;
+		}
+		InputStream inputStream = null;
+		try {
+			inputStream = FileUtils.getInputStream(getClass(),
+					"java/DatabaseHelper-template._java");
+			String input = IOUtils.toString(inputStream);
+			// Replacing .utils package
+			input = input.replace("__UTILS_PACKAGE__", projectPackage);
+			// Replacing general package
+			input = input
+					.replace("__GENERAL_PACKAGE__", projectOperations
+							.getFocusedTopLevelPackage()
+							.getFullyQualifiedPackageName());
+			fileManager.createOrUpdateTextFileIfRequired(physicalPath, input,
+					false);
+		} catch (final IOException e) {
+			throw new IllegalStateException("Unable to create '" + physicalPath
+					+ "'", e);
+		} finally {
+			IOUtils.closeQuietly(inputStream);
+		}
 	}
 
 	/**

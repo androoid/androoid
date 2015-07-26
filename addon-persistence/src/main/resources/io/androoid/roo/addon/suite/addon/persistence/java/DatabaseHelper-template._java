@@ -1,0 +1,17 @@
+package __UTILS_PACKAGE__;
+
+import android.content.Context;
+import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper;
+
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+
+import __GENERAL_PACKAGE__.R;
+
+@AndrooidDatabaseHelper
+public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
+
+	public DatabaseHelper(Context context){
+        super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
+    }
+
+}
