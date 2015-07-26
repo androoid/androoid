@@ -81,7 +81,8 @@ public class AndrooidDatabaseHelperMetadata extends
 	 */
 	public AndrooidDatabaseHelperMetadata(final String identifier,
 			final JavaType aspectName,
-			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage) {
+			final PhysicalTypeMetadata governorPhysicalTypeMetadata,
+			JavaPackage projectPackage) {
 		super(identifier, aspectName, governorPhysicalTypeMetadata);
 		Validate.isTrue(
 				isValid(identifier),
@@ -94,7 +95,8 @@ public class AndrooidDatabaseHelperMetadata extends
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
 				Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING, "\""
-						.concat(projectPackage.getLastElement()).concat(".db").concat("\""));
+						.concat(projectPackage.getLastElement()).concat(".db")
+						.concat("\""));
 		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(
 				getId(), Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
 				new JavaSymbolName("DATABASE_VERSION"), JavaType.INT_PRIMITIVE,
@@ -107,12 +109,44 @@ public class AndrooidDatabaseHelperMetadata extends
 		// Generate necessary methods
 		builder.addMethod(getOnCreateMethod());
 		builder.addMethod(getOnUpgradeMethod());
+		builder.addMethod(getCloseMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
 
 	}
 
+	/**
+	 * Gets <code>close</code> method. <br>
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getCloseMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method annotations
+		List<AnnotationMetadataBuilder> annotations = new ArrayList<AnnotationMetadataBuilder>();
+		annotations
+				.add(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		buildCloseMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+				getId(), Modifier.PUBLIC, new JavaSymbolName("close"),
+				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.setAnnotations(annotations);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
 
 	/**
 	 * Gets <code>onCreate</code> method. <br>
@@ -239,6 +273,17 @@ public class AndrooidDatabaseHelperMetadata extends
 	 */
 	private void buildOnUpgradeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 		// TODO: Generate dynamic tables
+	}
+	
+	/**
+	 * Builds body method for <code>close</code> method. <br>
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildCloseMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// super.close();
+		bodyBuilder.appendFormalLine("super.close();");
+		// TODO: All DAOs initialized to null
 	}
 
 	@Override
