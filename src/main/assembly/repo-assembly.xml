@@ -16,9 +16,6 @@
 
 			<!-- Now, select which projects to include in this module-set. -->
 			<includes>
-
-				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon-advanced
-				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.project
 				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.persistence

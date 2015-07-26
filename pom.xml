@@ -15,7 +15,7 @@
   <organization>
         <name>Androoid</name>
   </organization>
-  <description>Androoid is an Spring Roo Addon Suite that provides all functionalities to generate android projects using Spring Roo Shell</description>
+  <description>Androoid is an Spring Roo Add-On Suite that provides all functionalities to generate android projects using Spring Roo Shell</description>
   <url>http://www.androoid.io</url>
   
   <!-- Androoid project developers -->
@@ -47,7 +47,6 @@
     <module>osgi-bundles</module>
     <module>addon-project</module>
     <module>addon-persistence</module>
-    <module>addon-advanced</module>
     <!-- Generates the subsystem .esa file -->
     <module>roo-addon-suite</module>
     <!-- Create the local repository and publish it -->
