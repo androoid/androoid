@@ -18,6 +18,7 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Path;
@@ -61,7 +62,7 @@ public class AndrooidEntitiesOperationsImpl implements
 	}
 
 	/** {@inheritDoc} */
-	public void createEntity(JavaType entity) {
+	public void createEntity(JavaType entity, JavaSymbolName identifierName, JavaType identifierType) {
 		// Install necessary dependencies
 		installDependencies();
 		
@@ -87,8 +88,12 @@ public class AndrooidEntitiesOperationsImpl implements
 				"com.j256.ormlite.table.DatabaseTable")));
 		
 		// Including @AndrooidEntity annotation
-		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
-				AndrooidEntity.class)));
+		AnnotationMetadataBuilder entityAnnotation = new AnnotationMetadataBuilder(new JavaType(
+				AndrooidEntity.class));
+		entityAnnotation.addStringAttribute("identifierField", identifierName.getSymbolName());
+		entityAnnotation.addClassAttribute("identifierType",
+                identifierType);
+		cidBuilder.addAnnotation(entityAnnotation);
 		
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
