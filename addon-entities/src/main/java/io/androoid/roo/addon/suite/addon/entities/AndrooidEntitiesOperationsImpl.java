@@ -15,10 +15,11 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.ConstructorMetadata;
+import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
-import org.springframework.roo.model.RooJavaType;
 import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
@@ -91,9 +92,8 @@ public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperation
 		}
 		cidBuilder.addAnnotation(entityAnnotation);
 		
-		// Including @RooJavaBean to generate getters and setters
-		AnnotationMetadataBuilder javaBeanAnnotation = new AnnotationMetadataBuilder(new JavaType("org.springframework.roo.addon.javabean.annotations.RooJavaBean"));
-		cidBuilder.addAnnotation(javaBeanAnnotation);
+		// Including empty constructor
+		cidBuilder.addConstructor(new ConstructorMetadataBuilder(declaredByMetadataId));
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
