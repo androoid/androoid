@@ -54,8 +54,8 @@ public class AndrooidEntitiesCommands implements CommandMarker {
 	@CliCommand(value = "androoid entity", help = "Creates new entity on current Androoid Project.")
 	public void createEntity(
 			@CliOption(key = "class", optionContext = UPDATE_PROJECT, mandatory = true, help = "Name of the entity to create. (Ex: ~.domain.MyEntity)") final JavaType entity,
-			@CliOption(key = "identifierField", mandatory = false, optionContext = UPDATE_PROJECT, unspecifiedDefaultValue="id", specifiedDefaultValue="id", help = "The identifier field name to use for this entity. If null, set 'id' as default.") final JavaSymbolName identifierField,
-			@CliOption(key = "identifierType", mandatory = false, optionContext = "java-lang,project", unspecifiedDefaultValue = "java.lang.Long", specifiedDefaultValue = "java.lang.Long", help = "The data type that will be used for the identifier field (defaults to java.lang.Long)") final JavaType identifierType) {
+			@CliOption(key = "identifierField", mandatory = false, optionContext = UPDATE_PROJECT, help = "The identifier field name to use for this entity. If null, set 'id' as default.") final JavaSymbolName identifierField,
+			@CliOption(key = "identifierType", mandatory = false, optionContext = "java-lang,project", help = "The data type that will be used for the identifier field (defaults to java.lang.Long)") final JavaType identifierType) {
 		
 		// Creating new entity
 		entityOperations.createEntity(entity, identifierField, identifierType);

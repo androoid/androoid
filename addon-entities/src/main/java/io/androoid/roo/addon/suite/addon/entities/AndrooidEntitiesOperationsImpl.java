@@ -1,7 +1,5 @@
 package io.androoid.roo.addon.suite.addon.entities;
 
-import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
-
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -20,6 +18,7 @@ import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuil
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
+import org.springframework.roo.model.RooJavaType;
 import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
@@ -27,6 +26,8 @@ import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.project.Property;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
+
+import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
 
 /**
  * Implementation of {@link AndrooidEntitiesOperations} interface.
@@ -36,8 +37,7 @@ import org.w3c.dom.Element;
  */
 @Component
 @Service
-public class AndrooidEntitiesOperationsImpl implements
-		AndrooidEntitiesOperations {
+public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperations {
 
 	/**
 	 * Get hold of a JDK Logger
@@ -46,13 +46,13 @@ public class AndrooidEntitiesOperationsImpl implements
 
 	@Reference
 	private ProjectOperations projectOperations;
-	
+
 	@Reference
 	private PathResolver pathResolver;
-	
+
 	@Reference
 	private TypeLocationService typeLocationService;
-	
+
 	@Reference
 	private TypeManagementService typeManagementService;
 
@@ -65,39 +65,39 @@ public class AndrooidEntitiesOperationsImpl implements
 	public void createEntity(JavaType entity, JavaSymbolName identifierName, JavaType identifierType) {
 		// Install necessary dependencies
 		installDependencies();
-		
+
 		// Generate entity
 		int modifier = Modifier.PUBLIC;
-		final String declaredByMetadataId = PhysicalTypeIdentifier
-				.createIdentifier(entity,
-						pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
-		File targetFile = new File(
-				typeLocationService
-						.getPhysicalTypeCanonicalPath(declaredByMetadataId));
-		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists",
-				entity);
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(entity,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", entity);
 
 		// Prepare class builder
 		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
-				declaredByMetadataId, modifier, entity,
-				PhysicalTypeCategory.CLASS);
-
+				declaredByMetadataId, modifier, entity, PhysicalTypeCategory.CLASS);
 
 		// Including DatabaseTable annotation
-		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
-				"com.j256.ormlite.table.DatabaseTable")));
-		
+		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("com.j256.ormlite.table.DatabaseTable")));
+
 		// Including @AndrooidEntity annotation
-		AnnotationMetadataBuilder entityAnnotation = new AnnotationMetadataBuilder(new JavaType(
-				AndrooidEntity.class));
-		entityAnnotation.addStringAttribute("identifierField", identifierName.getSymbolName());
-		entityAnnotation.addClassAttribute("identifierType",
-                identifierType);
+		AnnotationMetadataBuilder entityAnnotation = new AnnotationMetadataBuilder(new JavaType(AndrooidEntity.class));
+		if (identifierName != null) {
+			entityAnnotation.addStringAttribute("identifierField", identifierName.getSymbolName());
+		}
+		if (identifierType != null) {
+			entityAnnotation.addClassAttribute("identifierType", identifierType);
+
+		}
 		cidBuilder.addAnnotation(entityAnnotation);
 		
+		// Including @RooJavaBean to generate getters and setters
+		AnnotationMetadataBuilder javaBeanAnnotation = new AnnotationMetadataBuilder(new JavaType("org.springframework.roo.addon.javabean.annotations.RooJavaBean"));
+		cidBuilder.addAnnotation(javaBeanAnnotation);
+
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
-	
+
 	/**
 	 * Method that uses configuration.xml file to install dependencies and
 	 * properties on current pom.xml
@@ -106,24 +106,20 @@ public class AndrooidEntitiesOperationsImpl implements
 		final Element configuration = XmlUtils.getConfiguration(getClass());
 
 		// Add properties
-		List<Element> properties = XmlUtils.findElements(
-				"/configuration/androoid/properties/*", configuration);
+		List<Element> properties = XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
 		for (Element property : properties) {
-			projectOperations.addProperty(projectOperations
-					.getFocusedModuleName(), new Property(property));
+			projectOperations.addProperty(projectOperations.getFocusedModuleName(), new Property(property));
 		}
 
 		// Add dependencies
-		List<Element> elements = XmlUtils.findElements(
-				"/configuration/androoid/dependencies/dependency",
+		List<Element> elements = XmlUtils.findElements("/configuration/androoid/dependencies/dependency",
 				configuration);
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		for (Element element : elements) {
 			Dependency dependency = new Dependency(element);
 			dependencies.add(dependency);
 		}
-		projectOperations.addDependencies(
-				projectOperations.getFocusedModuleName(), dependencies);
+		projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
 	}
 
 }

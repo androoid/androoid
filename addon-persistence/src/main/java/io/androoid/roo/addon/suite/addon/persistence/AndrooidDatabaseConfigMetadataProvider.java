@@ -13,6 +13,8 @@ import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.support.logging.HandlerUtils;
 
+import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseConfig;
+
 /**
  * Provides {@link AndrooidDatabaseConfigMetadata}.
  * 
@@ -25,8 +27,7 @@ public class AndrooidDatabaseConfigMetadataProvider extends AbstractItdMetadataP
 	
 	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidDatabaseConfigMetadataProvider.class);
 	
-    public static final JavaType ANDROOID_DATABASE_CONFIG = new JavaType(
-            "io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseConfig");
+    public static final JavaType ANDROOID_DATABASE_CONFIG = new JavaType(AndrooidDatabaseConfig.class);
 
 
 	protected void activate(final ComponentContext cContext) {
