@@ -15,4 +15,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface AndrooidDatabaseHelper {
 
+	/**
+	 * @return an array of classes, with each class being an entity that should
+	 *         be created as a DAO on DatabaseHelper {@value #ID_FIELD_DEFAULT}; must be provided)
+	 */
+	Class[] entities();
+
 }

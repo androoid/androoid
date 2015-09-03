@@ -1,9 +1,5 @@
 package io.androoid.roo.addon.suite.addon.persistence;
 
-import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseConfig;
-import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper;
-import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +7,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -23,12 +21,14 @@ import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
+import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
-import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
-import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
+import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
+import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
-import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
-import org.springframework.roo.model.ImportRegistrationResolver;
+import org.springframework.roo.classpath.details.annotations.ArrayAttributeValue;
+import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
+import org.springframework.roo.classpath.details.annotations.StringAttributeValue;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -42,6 +42,10 @@ import org.springframework.roo.support.util.FileUtils;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
+import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseConfig;
+import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper;
+import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
+
 /**
  * Implementation of {@link AndrooidPersistenceOperations} interface.
  * 
@@ -50,8 +54,9 @@ import org.w3c.dom.Element;
  */
 @Component
 @Service
-public class AndrooidPersistenceOperationsImpl implements
-		AndrooidPersistenceOperations {
+public class AndrooidPersistenceOperationsImpl<T> implements AndrooidPersistenceOperations<T> {
+
+	private static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(AndrooidDatabaseHelper.class);
 
 	/**
 	 * Get hold of a JDK Logger
@@ -89,36 +94,88 @@ public class AndrooidPersistenceOperationsImpl implements
 
 	}
 
+	/** {@inheritDoc} */
+	public void addDao(JavaType type) {
+
+		// Getting class with annotation @AndrooidDatabaseHelper
+		Set<JavaType> databaseHelperClasses = typeLocationService.findTypesWithAnnotation(ANDROOID_DATABASE_HELPER);
+
+		Validate.notEmpty(databaseHelperClasses,
+				"Android project needs class annotated with @AndrooidDatabaseHelper to works correctly.");
+
+		Iterator<JavaType> it = databaseHelperClasses.iterator();
+
+		while (it.hasNext()) {
+			// Getting @AndrooidDatabaseHelper attributes
+			JavaType databaseHelperClass = it.next();
+			ClassOrInterfaceTypeDetails databaseHelperDetails = typeLocationService.getTypeDetails(databaseHelperClass);
+
+			AnnotationMetadata androoidDatabaseHelperAnnotation = databaseHelperDetails
+					.getAnnotation(ANDROOID_DATABASE_HELPER);
+			AnnotationAttributeValue<List<ClassAttributeValue>> entitiesAttribute = androoidDatabaseHelperAnnotation
+					.getAttribute("entities");
+			
+			// Creating new annotation with old values
+			final List<AnnotationAttributeValue<?>> attributes = new ArrayList<AnnotationAttributeValue<?>>();
+			final List<ClassAttributeValue> desiredEntities = new ArrayList<ClassAttributeValue>();
+			
+			if(entitiesAttribute != null){
+				List<ClassAttributeValue> currentEntities = entitiesAttribute.getValue();
+				
+				Iterator<ClassAttributeValue> currentEntitiesIt = currentEntities.iterator();
+				while(currentEntitiesIt.hasNext()){
+					ClassAttributeValue entity = currentEntitiesIt.next();
+					desiredEntities.add(entity);
+				}
+			}
+			
+			// Prepare class builder
+			ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+					databaseHelperDetails);
+			// Removing old annotation
+			cidBuilder.removeAnnotation(ANDROOID_DATABASE_HELPER);
+
+			// Including new types
+			desiredEntities.add(new ClassAttributeValue(new JavaSymbolName("entities"), type));
+
+			attributes.add(
+					new ArrayAttributeValue<ClassAttributeValue>(new JavaSymbolName("entities"), desiredEntities));
+
+			AnnotationMetadataBuilder databaseHelperAnnotation = new AnnotationMetadataBuilder(ANDROOID_DATABASE_HELPER,
+					attributes);
+
+			// Including new annotation
+			cidBuilder.addAnnotation(databaseHelperAnnotation);
+
+			typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+
+		}
+
+	}
+
 	/**
 	 * Method to generate DatabaseHelper.java on src/main/java/${package}/utils
 	 */
 	private void createDatabaseHelper() {
-		String projectPackage = projectOperations.getFocusedTopLevelPackage()
-				.getFullyQualifiedPackageName().concat(".utils");
-		final JavaType javaType = new JavaType(projectPackage
-				+ ".DatabaseHelper");
-		final String physicalPath = pathResolver.getFocusedCanonicalPath(
-				Path.SRC_MAIN_JAVA, javaType);
+		String projectPackage = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".utils");
+		final JavaType javaType = new JavaType(projectPackage + ".DatabaseHelper");
+		final String physicalPath = pathResolver.getFocusedCanonicalPath(Path.SRC_MAIN_JAVA, javaType);
 		if (fileManager.exists(physicalPath)) {
 			return;
 		}
 		InputStream inputStream = null;
 		try {
-			inputStream = FileUtils.getInputStream(getClass(),
-					"java/DatabaseHelper-template._java");
+			inputStream = FileUtils.getInputStream(getClass(), "java/DatabaseHelper-template._java");
 			String input = IOUtils.toString(inputStream);
 			// Replacing .utils package
 			input = input.replace("__UTILS_PACKAGE__", projectPackage);
 			// Replacing general package
-			input = input
-					.replace("__GENERAL_PACKAGE__", projectOperations
-							.getFocusedTopLevelPackage()
-							.getFullyQualifiedPackageName());
-			fileManager.createOrUpdateTextFileIfRequired(physicalPath, input,
-					false);
+			input = input.replace("__GENERAL_PACKAGE__",
+					projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName());
+			fileManager.createOrUpdateTextFileIfRequired(physicalPath, input, false);
 		} catch (final IOException e) {
-			throw new IllegalStateException("Unable to create '" + physicalPath
-					+ "'", e);
+			throw new IllegalStateException("Unable to create '" + physicalPath + "'", e);
 		} finally {
 			IOUtils.closeQuietly(inputStream);
 		}
@@ -131,32 +188,25 @@ public class AndrooidPersistenceOperationsImpl implements
 	private void createDatabaseConfigUtils() {
 
 		// Getting current package
-		String utilsPath = projectOperations.getFocusedTopLevelPackage()
-				.getFullyQualifiedPackageName().concat(".utils");
+		String utilsPath = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".utils");
 
 		int modifier = Modifier.PUBLIC;
 		JavaType target = new JavaType(utilsPath.concat(".DatabaseConfigUtils"));
-		final String declaredByMetadataId = PhysicalTypeIdentifier
-				.createIdentifier(target,
-						pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
-		File targetFile = new File(
-				typeLocationService
-						.getPhysicalTypeCanonicalPath(declaredByMetadataId));
-		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists",
-				target);
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(target,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", target);
 
 		// Prepare class builder
 		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
-				declaredByMetadataId, modifier, target,
-				PhysicalTypeCategory.CLASS);
+				declaredByMetadataId, modifier, target, PhysicalTypeCategory.CLASS);
 
 		// DatabaseConfigUtils extends OrmLiteConfigUtil
-		cidBuilder.addExtendsTypes(new JavaType(
-				"com.j256.ormlite.android.apptools.OrmLiteConfigUtil"));
+		cidBuilder.addExtendsTypes(new JavaType("com.j256.ormlite.android.apptools.OrmLiteConfigUtil"));
 
 		// Including AndrooidDatabaseConfig annotation
-		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
-				AndrooidDatabaseConfig.class)));
+		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(AndrooidDatabaseConfig.class)));
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 
@@ -166,13 +216,10 @@ public class AndrooidPersistenceOperationsImpl implements
 	 * Method to create ormlite_config.txt file on src/main/res/raw folder
 	 */
 	private void createOrmLiteConfigFile() {
-		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
-		Validate.isTrue(!fileManager.exists(ormLiteConfigPath),
-				"'ormlite_config.txt' file exists!");
+		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
+		Validate.isTrue(!fileManager.exists(ormLiteConfigPath), "'ormlite_config.txt' file exists!");
 
-		final InputStream templateInputStream = FileUtils.getInputStream(
-				getClass(), "raw/ormlite_config.txt");
+		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "raw/ormlite_config.txt");
 
 		OutputStream outputStream = null;
 
@@ -182,14 +229,12 @@ public class AndrooidPersistenceOperationsImpl implements
 			input = input.replace("_CURRENT_DATE_", new Date().toString());
 
 			// Output the file for the user
-			final MutableFile mutableFile = fileManager
-					.createFile(ormLiteConfigPath);
+			final MutableFile mutableFile = fileManager.createFile(ormLiteConfigPath);
 
 			outputStream = mutableFile.getOutputStream();
 			IOUtils.write(input, outputStream);
 		} catch (final IOException ioe) {
-			throw new IllegalStateException(
-					"Unable to create ormlite_config.txt file", ioe);
+			throw new IllegalStateException("Unable to create ormlite_config.txt file", ioe);
 		} finally {
 			IOUtils.closeQuietly(templateInputStream);
 			IOUtils.closeQuietly(outputStream);
@@ -204,24 +249,20 @@ public class AndrooidPersistenceOperationsImpl implements
 		final Element configuration = XmlUtils.getConfiguration(getClass());
 
 		// Add properties
-		List<Element> properties = XmlUtils.findElements(
-				"/configuration/androoid/properties/*", configuration);
+		List<Element> properties = XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
 		for (Element property : properties) {
-			projectOperations.addProperty(projectOperations
-					.getFocusedModuleName(), new Property(property));
+			projectOperations.addProperty(projectOperations.getFocusedModuleName(), new Property(property));
 		}
 
 		// Add dependencies
-		List<Element> elements = XmlUtils.findElements(
-				"/configuration/androoid/dependencies/dependency",
+		List<Element> elements = XmlUtils.findElements("/configuration/androoid/dependencies/dependency",
 				configuration);
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		for (Element element : elements) {
 			Dependency dependency = new Dependency(element);
 			dependencies.add(dependency);
 		}
-		projectOperations.addDependencies(
-				projectOperations.getFocusedModuleName(), dependencies);
+		projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
 	}
 
 	/**
@@ -233,8 +274,7 @@ public class AndrooidPersistenceOperationsImpl implements
 	}
 
 	public boolean isInstalledInModule(String moduleName) {
-		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
+		final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "raw/ormlite_config.txt");
 		return fileManager.exists(ormLiteConfigPath);
 	}
 

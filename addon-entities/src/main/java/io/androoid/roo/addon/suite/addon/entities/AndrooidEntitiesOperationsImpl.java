@@ -15,7 +15,6 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
-import org.springframework.roo.classpath.details.ConstructorMetadata;
 import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaSymbolName;
@@ -29,6 +28,7 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
+import io.androoid.roo.addon.suite.addon.persistence.AndrooidPersistenceOperations;
 
 /**
  * Implementation of {@link AndrooidEntitiesOperations} interface.
@@ -47,7 +47,10 @@ public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperation
 
 	@Reference
 	private ProjectOperations projectOperations;
-
+	
+	@Reference
+	private AndrooidPersistenceOperations persistenceOperations;
+	
 	@Reference
 	private PathResolver pathResolver;
 
@@ -96,6 +99,9 @@ public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperation
 		cidBuilder.addConstructor(new ConstructorMetadataBuilder(declaredByMetadataId));
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+		
+		// Including entity on @AndrooidDatabaseHelper annotation
+		persistenceOperations.addDao(entity);
 	}
 
 	/**
