@@ -10,7 +10,7 @@ import org.springframework.roo.project.Feature;
  * @author Juan Carlos García
  * @since 1.0
  */
-public interface AndrooidPersistenceOperations<T> extends Feature {
+public interface AndrooidPersistenceOperations extends Feature {
 
 	public static final String FEATURE_ANDROOID_PERSISTENCE = "androoid-persistence";
 

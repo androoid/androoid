@@ -28,7 +28,6 @@ import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.ArrayAttributeValue;
 import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
-import org.springframework.roo.classpath.details.annotations.StringAttributeValue;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -54,7 +53,7 @@ import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
  */
 @Component
 @Service
-public class AndrooidPersistenceOperationsImpl<T> implements AndrooidPersistenceOperations<T> {
+public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOperations {
 
 	private static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(AndrooidDatabaseHelper.class);
 
