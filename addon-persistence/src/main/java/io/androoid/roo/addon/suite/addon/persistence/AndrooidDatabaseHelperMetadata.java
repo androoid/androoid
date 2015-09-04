@@ -324,7 +324,40 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 	 * @param bodyBuilder
 	 */
 	private void buildOnUpgradeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
-		// TODO: Generate dynamic tables
+		// Check if is necessary to generate method body
+		if (!this.entitiesToInclude.isEmpty()) {
+			// Generate method body
+
+			// try {
+			bodyBuilder.appendFormalLine("try {");
+			bodyBuilder.indent();
+
+			// Generating dynamic tables
+			for (JavaType entity : this.entitiesToInclude) {
+
+				// TableUtils.createTable(connectionSource, EntityX.class);
+				bodyBuilder.appendFormalLine(String.format("%s.dropTable(connectionSource, %s.class, true);",
+						new JavaType("com.j256.ormlite.table.TableUtils").getNameIncludingTypeParameters(false,
+								builder.getImportRegistrationResolver()),
+						entity.getSimpleTypeName()));
+			}
+
+			// onCreate(database, connectionSource);
+			bodyBuilder.appendFormalLine("onCreate(database, connectionSource);");
+
+			// } catch (SQLException e) {
+			bodyBuilder.indentRemove();
+			bodyBuilder.appendFormalLine(String.format("} catch (%s e) {", new JavaType("java.sql.SQLException")
+					.getNameIncludingTypeParameters(false, builder.getImportRegistrationResolver())));
+			bodyBuilder.indent();
+
+			// e.printStackTrace();
+			bodyBuilder.appendFormalLine("e.printStackTrace();");
+			bodyBuilder.indentRemove();
+
+			// }
+			bodyBuilder.appendFormalLine("}");
+		}
 	}
 
 	/**
@@ -335,7 +368,25 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 	private void buildCloseMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 		// super.close();
 		bodyBuilder.appendFormalLine("super.close();");
-		// TODO: All DAOs initialized to null
+
+		// Check if is necessary to continue with method body generation
+		if (!this.entitiesToInclude.isEmpty()) {
+
+			for (JavaType entity : this.entitiesToInclude) {
+
+				// Including entityDao
+				JavaSymbolName daoName = new JavaSymbolName(Character.toLowerCase(entity.getSimpleTypeName().charAt(0))
+						+ entity.getSimpleTypeName().substring(1).concat("Dao"));
+				bodyBuilder.appendFormalLine(String.format("%s = null;", daoName));
+
+				// Including runtimeExceptionDaoName
+				JavaSymbolName runtimeExceptionDaoName = new JavaSymbolName(
+						"runtimeException".concat(entity.getSimpleTypeName()).concat("Dao"));
+				bodyBuilder.appendFormalLine(String.format("%s = null;", runtimeExceptionDaoName));
+			}
+
+		}
+
 	}
 
 	@Override
