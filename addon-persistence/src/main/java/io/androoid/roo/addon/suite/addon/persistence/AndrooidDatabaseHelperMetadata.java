@@ -39,6 +39,7 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 	private static final String PROVIDES_TYPE = MetadataIdentificationUtils.create(PROVIDES_TYPE_STRING);
 
 	private final ImportRegistrationResolver importResolver;
+	private final List<JavaType> entitiesToInclude;
 
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
@@ -80,6 +81,7 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 				identifier);
 
 		this.importResolver = builder.getImportRegistrationResolver();
+		this.entitiesToInclude = entitiesToInclude;
 
 		// Adding constants
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
@@ -283,7 +285,37 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 	 * @param bodyBuilder
 	 */
 	private void buildOnCreateMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
-		// TODO: Generate dynamic tables
+		// Check if is necessary to generate method body
+		if (!this.entitiesToInclude.isEmpty()) {
+			// Generate method body
+
+			// try {
+			bodyBuilder.appendFormalLine("try {");
+			bodyBuilder.indent();
+
+			// Generating dynamic tables
+			for (JavaType entity : this.entitiesToInclude) {
+
+				// TableUtils.createTable(connectionSource, EntityX.class);
+				bodyBuilder.appendFormalLine(String.format(
+						"%s.createTable(connectionSource, %s.class);", new JavaType("com.j256.ormlite.table.TableUtils")
+								.getNameIncludingTypeParameters(false, builder.getImportRegistrationResolver()),
+						entity.getSimpleTypeName()));
+			}
+
+			// } catch (SQLException e) {
+			bodyBuilder.indentRemove();
+			bodyBuilder.appendFormalLine(String.format("} catch (%s e) {", new JavaType("java.sql.SQLException")
+					.getNameIncludingTypeParameters(false, builder.getImportRegistrationResolver())));
+			bodyBuilder.indent();
+
+			// e.printStackTrace();
+			bodyBuilder.appendFormalLine("e.printStackTrace();");
+			bodyBuilder.indentRemove();
+
+			// }
+			bodyBuilder.appendFormalLine("}");
+		}
 	}
 
 	/**
