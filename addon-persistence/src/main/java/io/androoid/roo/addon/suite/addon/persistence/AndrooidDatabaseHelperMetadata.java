@@ -97,6 +97,10 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 		for (JavaType entity : entitiesToInclude) {
 			builder.addField(getEntityDao(entity));
 			builder.addField(getEntityRuntimeExceptionDao(entity));
+
+			// Generating getters
+			builder.addMethod(getEntityDaoGetter(entity));
+			builder.addMethod(getEntityRuntimeExceptionDaoGetter(entity));
 		}
 
 		// Generate necessary methods
@@ -106,6 +110,128 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
+
+	}
+
+	/**
+	 * Method that generates entity DAO getter using received entity JavaType
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	private MethodMetadataBuilder getEntityDaoGetter(JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		final List<JavaType> parameters = new ArrayList<JavaType>();
+
+		parameters.add(entity);
+		parameters.add(JavaType.INT_OBJECT);
+		JavaType returnType = new JavaType("com.j256.ormlite.dao.Dao", 0, DataType.TYPE, null, parameters);
+
+		String daoName = Character.toLowerCase(entity.getSimpleTypeName().charAt(0))
+				+ entity.getSimpleTypeName().substring(1).concat("Dao");
+
+		buildEntityDaoGetterMethodBody(bodyBuilder, daoName, entity);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("get".concat(daoName)), returnType, parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException"));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates entity DAO getter body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildEntityDaoGetterMethodBody(InvocableMemberBodyBuilder bodyBuilder, String daoName,
+			JavaType entity) {
+
+		// if(daoName == null){
+		bodyBuilder.appendFormalLine(String.format("if(%s == null){", daoName));
+		bodyBuilder.indent();
+
+		// daoName = getDao(EntityX.class);
+		bodyBuilder.appendFormalLine(String.format("%s = getDao(%s.class);", daoName, entity.getSimpleTypeName()));
+		bodyBuilder.indentRemove();
+
+		// }
+		bodyBuilder.appendFormalLine("}");
+
+		// return daoName;
+		bodyBuilder.appendFormalLine(String.format("return %s;", daoName));
+
+	}
+
+	/**
+	 * Method that generates entity RuntimeExceptionDAO getter using received
+	 * entity JavaType
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	private MethodMetadataBuilder getEntityRuntimeExceptionDaoGetter(JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		final List<JavaType> parameters = new ArrayList<JavaType>();
+
+		parameters.add(entity);
+		parameters.add(JavaType.INT_OBJECT);
+		JavaType returnType = new JavaType("com.j256.ormlite.dao.RuntimeExceptionDao", 0, DataType.TYPE, null,
+				parameters);
+
+		String daoName = "runtimeException".concat(entity.getSimpleTypeName()).concat("Dao");
+
+		buildEntityRuntimeExceptionDaoGetterMethodBody(bodyBuilder, daoName, entity);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("get".concat(daoName)), returnType, parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException"));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates entity RuntimeExceptionDAO getter body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildEntityRuntimeExceptionDaoGetterMethodBody(InvocableMemberBodyBuilder bodyBuilder, String daoName,
+			JavaType entity) {
+
+		// if(daoName == null){
+		bodyBuilder.appendFormalLine(String.format("if(%s == null){", daoName));
+		bodyBuilder.indent();
+
+		// daoName = getRuntimeExceptionDao(EntityX.class);
+		bodyBuilder.appendFormalLine(
+				String.format("%s = getRuntimeExceptionDao(%s.class);", daoName, entity.getSimpleTypeName()));
+		bodyBuilder.indentRemove();
+
+		// }
+		bodyBuilder.appendFormalLine("}");
+
+		// return daoName;
+		bodyBuilder.appendFormalLine(String.format("return %s;", daoName));
 
 	}
 
