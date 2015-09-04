@@ -1,7 +1,5 @@
 package io.androoid.roo.addon.suite.addon.persistence;
 
-import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper;
-
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +18,14 @@ import org.springframework.roo.classpath.details.comments.JavadocComment;
 import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMetadataItem;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
+import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.ImportRegistrationResolver;
 import org.springframework.roo.model.JavaPackage;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
+
+import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper;
 
 /**
  * Metadata for {@link AndrooidDatabaseHelper} annotation.
@@ -32,25 +33,19 @@ import org.springframework.roo.project.LogicalPath;
  * @author Juan Carlos García
  * @since 1.0
  */
-public class AndrooidDatabaseHelperMetadata extends
-		AbstractItdTypeDetailsProvidingMetadataItem {
+public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvidingMetadataItem {
 
-	private static final String PROVIDES_TYPE_STRING = AndrooidDatabaseHelperMetadata.class
-			.getName();
-	private static final String PROVIDES_TYPE = MetadataIdentificationUtils
-			.create(PROVIDES_TYPE_STRING);
+	private static final String PROVIDES_TYPE_STRING = AndrooidDatabaseHelperMetadata.class.getName();
+	private static final String PROVIDES_TYPE = MetadataIdentificationUtils.create(PROVIDES_TYPE_STRING);
 
 	private final ImportRegistrationResolver importResolver;
 
-	public static String createIdentifier(final JavaType javaType,
-			final LogicalPath path) {
-		return PhysicalTypeIdentifierNamingUtils.createIdentifier(
-				PROVIDES_TYPE_STRING, javaType, path);
+	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
+		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
 	}
 
 	public static JavaType getJavaType(final String metadataIdentificationString) {
-		return PhysicalTypeIdentifierNamingUtils.getJavaType(
-				PROVIDES_TYPE_STRING, metadataIdentificationString);
+		return PhysicalTypeIdentifierNamingUtils.getJavaType(PROVIDES_TYPE_STRING, metadataIdentificationString);
 	}
 
 	public static String getMetadataIdentiferType() {
@@ -58,13 +53,11 @@ public class AndrooidDatabaseHelperMetadata extends
 	}
 
 	public static LogicalPath getPath(final String metadataIdentificationString) {
-		return PhysicalTypeIdentifierNamingUtils.getPath(PROVIDES_TYPE_STRING,
-				metadataIdentificationString);
+		return PhysicalTypeIdentifierNamingUtils.getPath(PROVIDES_TYPE_STRING, metadataIdentificationString);
 	}
 
 	public static boolean isValid(final String metadataIdentificationString) {
-		return PhysicalTypeIdentifierNamingUtils.isValid(PROVIDES_TYPE_STRING,
-				metadataIdentificationString);
+		return PhysicalTypeIdentifierNamingUtils.isValid(PROVIDES_TYPE_STRING, metadataIdentificationString);
 	}
 
 	/**
@@ -79,32 +72,30 @@ public class AndrooidDatabaseHelperMetadata extends
 	 * @param projectPackage
 	 * 
 	 */
-	public AndrooidDatabaseHelperMetadata(final String identifier,
-			final JavaType aspectName,
-			final PhysicalTypeMetadata governorPhysicalTypeMetadata,
-			JavaPackage projectPackage) {
+	public AndrooidDatabaseHelperMetadata(final String identifier, final JavaType aspectName,
+			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage,
+			List<JavaType> entitiesToInclude) {
 		super(identifier, aspectName, governorPhysicalTypeMetadata);
-		Validate.isTrue(
-				isValid(identifier),
-				"Metadata identification string '%s' does not appear to be a valid",
+		Validate.isTrue(isValid(identifier), "Metadata identification string '%s' does not appear to be a valid",
 				identifier);
 
 		this.importResolver = builder.getImportRegistrationResolver();
 
 		// Adding constants
 		FieldMetadataBuilder databaseName = new FieldMetadataBuilder(getId(),
-				Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
-				new JavaSymbolName("DATABASE_NAME"), JavaType.STRING, "\""
-						.concat(projectPackage.getLastElement()).concat(".db")
-						.concat("\""));
-		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(
-				getId(), Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL,
-				new JavaSymbolName("DATABASE_VERSION"), JavaType.INT_PRIMITIVE,
-				"1");
+				Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL, new JavaSymbolName("DATABASE_NAME"),
+				JavaType.STRING, "\"".concat(projectPackage.getLastElement()).concat(".db").concat("\""));
+		FieldMetadataBuilder databaseVersion = new FieldMetadataBuilder(getId(),
+				Modifier.PUBLIC + Modifier.STATIC + Modifier.FINAL, new JavaSymbolName("DATABASE_VERSION"),
+				JavaType.INT_PRIMITIVE, "1");
 		builder.addField(databaseName);
 		builder.addField(databaseVersion);
 
-		// TODO: Generate dynamic fields
+		// Generate DAOs using annotation entities
+		for (JavaType entity : entitiesToInclude) {
+			builder.addField(getEntityDao(entity));
+			builder.addField(getEntityRuntimeExceptionDao(entity));
+		}
 
 		// Generate necessary methods
 		builder.addMethod(getOnCreateMethod());
@@ -114,6 +105,53 @@ public class AndrooidDatabaseHelperMetadata extends
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
 
+	}
+
+	/**
+	 * 
+	 * Method that generates entity DAO using received entity Javatype
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	private FieldMetadataBuilder getEntityDao(JavaType entity) {
+
+		final List<JavaType> parameters = new ArrayList<JavaType>();
+
+		parameters.add(entity);
+		parameters.add(JavaType.INT_OBJECT);
+
+		JavaSymbolName daoName = new JavaSymbolName(Character.toLowerCase(entity.getSimpleTypeName().charAt(0))
+				+ entity.getSimpleTypeName().substring(1).concat("Dao"));
+
+		FieldMetadataBuilder entityDao = new FieldMetadataBuilder(getId(), Modifier.PRIVATE, daoName,
+				new JavaType("com.j256.ormlite.dao.Dao", 0, DataType.TYPE, null, parameters), null);
+
+		return entityDao;
+	}
+
+	/**
+	 * 
+	 * Method that generates entity RuntimeExceptionDAO using received entity
+	 * Javatype
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	private FieldMetadataBuilder getEntityRuntimeExceptionDao(JavaType entity) {
+
+		final List<JavaType> parameters = new ArrayList<JavaType>();
+
+		parameters.add(entity);
+		parameters.add(JavaType.INT_OBJECT);
+
+		JavaSymbolName daoName = new JavaSymbolName(
+				"runtimeException".concat(entity.getSimpleTypeName()).concat("Dao"));
+
+		FieldMetadataBuilder entityDao = new FieldMetadataBuilder(getId(), Modifier.PRIVATE, daoName,
+				new JavaType("com.j256.ormlite.dao.RuntimeExceptionDao", 0, DataType.TYPE, null, parameters), null);
+
+		return entityDao;
 	}
 
 	/**
@@ -127,8 +165,7 @@ public class AndrooidDatabaseHelperMetadata extends
 
 		// Define method annotations
 		List<AnnotationMetadataBuilder> annotations = new ArrayList<AnnotationMetadataBuilder>();
-		annotations
-				.add(new AnnotationMetadataBuilder(new JavaType("Override")));
+		annotations.add(new AnnotationMetadataBuilder(new JavaType("Override")));
 
 		// Define method parameter names
 		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
@@ -138,10 +175,8 @@ public class AndrooidDatabaseHelperMetadata extends
 		buildCloseMethodBody(bodyBuilder);
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
-		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
-				getId(), Modifier.PUBLIC, new JavaSymbolName("close"),
-				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("close"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 		methodBuilder.setAnnotations(annotations);
 
 		return methodBuilder; // Build and return a MethodMetadata
@@ -156,15 +191,12 @@ public class AndrooidDatabaseHelperMetadata extends
 	private MethodMetadataBuilder getOnCreateMethod() {
 		// Define method parameter types
 		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
-		parameterTypes.add(new AnnotatedJavaType(new JavaType(
-				"android.database.sqlite.SQLiteDatabase")));
-		parameterTypes.add(new AnnotatedJavaType(new JavaType(
-				"com.j256.ormlite.support.ConnectionSource")));
+		parameterTypes.add(new AnnotatedJavaType(new JavaType("android.database.sqlite.SQLiteDatabase")));
+		parameterTypes.add(new AnnotatedJavaType(new JavaType("com.j256.ormlite.support.ConnectionSource")));
 
 		// Define method annotations
 		List<AnnotationMetadataBuilder> annotations = new ArrayList<AnnotationMetadataBuilder>();
-		annotations
-				.add(new AnnotationMetadataBuilder(new JavaType("Override")));
+		annotations.add(new AnnotationMetadataBuilder(new JavaType("Override")));
 
 		// Define method parameter names
 		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
@@ -176,10 +208,8 @@ public class AndrooidDatabaseHelperMetadata extends
 		buildOnCreateMethodBody(bodyBuilder);
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
-		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
-				getId(), Modifier.PUBLIC, new JavaSymbolName("onCreate"),
-				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onCreate"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 		methodBuilder.setAnnotations(annotations);
 
 		// Including comments
@@ -188,8 +218,7 @@ public class AndrooidDatabaseHelperMetadata extends
 				"What to do when your database needs to be created. Usually this entails creating the tables and loading any \n initial data. \n \n \n "
 						+ "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n returned by getConnectionSource(). "
 						+ "If you use your own, a recursive call or other unexpected results may result. \n \n"
-						+ "@param database         Database being created. \n"
-						+ "@param connectionSource \n");
+						+ "@param database         Database being created. \n" + "@param connectionSource \n");
 		commentStructure.addComment(comment, CommentLocation.BEGINNING);
 		methodBuilder.setCommentStructure(commentStructure);
 
@@ -205,17 +234,14 @@ public class AndrooidDatabaseHelperMetadata extends
 	private MethodMetadataBuilder getOnUpgradeMethod() {
 		// Define method parameter types
 		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
-		parameterTypes.add(new AnnotatedJavaType(new JavaType(
-				"android.database.sqlite.SQLiteDatabase")));
-		parameterTypes.add(new AnnotatedJavaType(new JavaType(
-				"com.j256.ormlite.support.ConnectionSource")));
+		parameterTypes.add(new AnnotatedJavaType(new JavaType("android.database.sqlite.SQLiteDatabase")));
+		parameterTypes.add(new AnnotatedJavaType(new JavaType("com.j256.ormlite.support.ConnectionSource")));
 		parameterTypes.add(new AnnotatedJavaType(JavaType.INT_PRIMITIVE));
 		parameterTypes.add(new AnnotatedJavaType(JavaType.INT_PRIMITIVE));
 
 		// Define method annotations
 		List<AnnotationMetadataBuilder> annotations = new ArrayList<AnnotationMetadataBuilder>();
-		annotations
-				.add(new AnnotationMetadataBuilder(new JavaType("Override")));
+		annotations.add(new AnnotationMetadataBuilder(new JavaType("Override")));
 
 		// Define method parameter names
 		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
@@ -229,24 +255,18 @@ public class AndrooidDatabaseHelperMetadata extends
 		buildOnUpgradeMethodBody(bodyBuilder);
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
-		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
-				getId(), Modifier.PUBLIC, new JavaSymbolName("onUpgrade"),
-				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onUpgrade"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 		methodBuilder.setAnnotations(annotations);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
 		JavadocComment comment = new JavadocComment(
 				"What to do when your database needs to be updated. This could mean careful migration of old data to new data.\n"
-						+ "Maybe adding or deleting database columns, etc.. \n"
-						+ "\n"
-						+ "\n"
+						+ "Maybe adding or deleting database columns, etc.. \n" + "\n" + "\n"
 						+ "<b>NOTE:</b> You should use the connectionSource argument that is passed into this method call or the one \n"
 						+ "returned by getConnectionSource(). If you use your own, a recursive call or other unexpected results may result.\n"
-						+ "\n"
-						+ "\n"
-						+ "@param database         Database being upgraded.\n"
+						+ "\n" + "\n" + "@param database         Database being upgraded.\n"
 						+ "@param connectionSource To use get connections to the database to be updated.\n"
 						+ "@param oldVersion       The version of the current database so we can know what to do to the database.\n"
 						+ "@param newVersion\n");
@@ -274,7 +294,7 @@ public class AndrooidDatabaseHelperMetadata extends
 	private void buildOnUpgradeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 		// TODO: Generate dynamic tables
 	}
-	
+
 	/**
 	 * Builds body method for <code>close</code> method. <br>
 	 * 
