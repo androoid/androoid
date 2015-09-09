@@ -22,6 +22,8 @@
 				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.entities
 				</include>
+				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.fields
+				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.roo-addon-suite
 				</include>
 			</includes>
