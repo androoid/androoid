@@ -3,11 +3,6 @@
 	<resource>
 		<capability name="roo-addon">
 			<p n="command-entities" v="androoid entity" />
-			<p n="command-field-string" v="androoid field string" />
-			<p n="command-field-number" v="androoid field number" />
-			<p n="command-field-boolean" v="androoid field boolean" />
-			<p n="command-field-list" v="androoid field list" />
-			<p n="command-field-geo" v="androoid field geo" />
 		</capability>
 	</resource>
 </repository>

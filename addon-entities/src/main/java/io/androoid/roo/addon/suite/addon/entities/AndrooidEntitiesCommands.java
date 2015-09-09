@@ -16,8 +16,7 @@ import org.springframework.roo.shell.CommandMarker;
 
 /**
  * Androoid EntitiesCommands class. This class provides all necessary commands
- * to generate entities on Android Project and add fields to that generated
- * entities.
+ * to generate entities on Android Project.
  * 
  * 
  * @author Juan Carlos García
