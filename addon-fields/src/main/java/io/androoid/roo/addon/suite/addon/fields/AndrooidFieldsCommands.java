@@ -50,6 +50,7 @@ public class AndrooidFieldsCommands implements CommandMarker {
 	 * This method registers the androoid field string command.
 	 * 
 	 * @param class
+	 * @param name
 	 */
 	@CliCommand(value = "androoid field string", help = "Creates new String field on selected entity.")
 	public void createStringField(
@@ -64,6 +65,8 @@ public class AndrooidFieldsCommands implements CommandMarker {
 	 * This method registers the androoid field number command.
 	 * 
 	 * @param class
+	 * @param type
+	 * @param name
 	 */
 	@CliCommand(value = "androoid field number", help = "Creates new numeric field on selected entity.")
 	public void createNumberField(
@@ -79,6 +82,7 @@ public class AndrooidFieldsCommands implements CommandMarker {
 	 * This method registers the androoid field boolean command.
 	 * 
 	 * @param class
+	 * @param name
 	 */
 	@CliCommand(value = "androoid field boolean", help = "Creates new boolean on selected entity.")
 	public void createBooleanField(
@@ -93,6 +97,8 @@ public class AndrooidFieldsCommands implements CommandMarker {
 	 * This method registers the androoid field reference command.
 	 * 
 	 * @param class
+	 * @param type
+	 * @param name
 	 */
 	@CliCommand(value = "androoid field reference", help = "Creates new reference to other existing entity on selected entity.")
 	public void createReferenceField(
@@ -102,5 +108,22 @@ public class AndrooidFieldsCommands implements CommandMarker {
 
 		// Creating new field
 		fieldOperations.createReferencedField(entity, fieldName, entityToReference);
+	}
+
+	/**
+	 * This method registers the androoid field geo command.
+	 * 
+	 * @param class
+	 * @param type
+	 * @param name
+	 */
+	@CliCommand(value = "androoid field geo", help = "Creates new geo field on selected entity.")
+	public void createGeoField(
+			@CliOption(key = "class", mandatory = false, unspecifiedDefaultValue = "*", optionContext = UPDATE_PROJECT, help = "The name of the entity to receive this field") final JavaType entity,
+			@CliOption(key = "type", mandatory = true, help = "The GEO type of the field") AndrooidFieldGeoTypes fieldType,
+			@CliOption(key = "name", mandatory = true, optionContext = UPDATE_PROJECT, help = "The field name to use.") final JavaSymbolName fieldName) {
+
+		// Creating new field
+		fieldOperations.createGeoField(entity, fieldName, fieldType);
 	}
 }

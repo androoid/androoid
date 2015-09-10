@@ -35,5 +35,14 @@ public interface AndrooidFieldsOperations {
 	 * @param The entity to reference. 
 	 */
 	void createReferencedField(JavaType entity, JavaSymbolName fieldName, JavaType entityToReference);
+	
+	/**
+	 * Creates new Geo Field on entity
+	 * 
+	 * @param The entity where field will be added
+	 * @param The fieldName to use for this field. 
+	 * @param The GEO field type
+	 */
+	void createGeoField(JavaType entity, JavaSymbolName fieldName, AndrooidFieldGeoTypes entityToReference);
 
 }

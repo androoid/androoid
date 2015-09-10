@@ -87,6 +87,24 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 		typeManagementService.addField(newField.build());
 	}
 
+	/** {@inheritDoc} */
+	public void createGeoField(JavaType entity, JavaSymbolName fieldName, AndrooidFieldGeoTypes fieldType) {
+
+		// Install GEO dependencies
+		installGeoDependencies();
+
+		FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, new JavaType(fieldType.description));
+
+		// Including params on @DatabaseField annotation
+		AnnotationMetadataBuilder databaseFieldAnnotation = newField
+				.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+
+		databaseFieldAnnotation.addEnumAttribute("dataType", new JavaType("com.j256.ormlite.field.DataType"),
+				new JavaSymbolName("SERIALIZABLE"));
+
+		typeManagementService.addField(newField.build());
+	}
+
 	/**
 	 * Method that generates field metadata to be used on different create
 	 * fields methods
@@ -152,7 +170,7 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 	 * Method that uses configuration.xml file to install dependencies and
 	 * properties on current pom.xml
 	 */
-	private void installDependencies() {
+	private void installGeoDependencies() {
 		final Element configuration = XmlUtils.getConfiguration(getClass());
 
 		// Add properties
