@@ -1,4 +1,4 @@
-= Androoid Project image:https://travis-ci.org/androoid/androoid.svg["Build Status", link="https://travis-ci.org/androoid/androoid"]
+= Androoid - Roo Add-On Suite image:https://travis-ci.org/androoid/androoid.svg["Build Status", link="https://travis-ci.org/androoid/androoid"]
 
 image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Roo Project",width="10%"]
 
