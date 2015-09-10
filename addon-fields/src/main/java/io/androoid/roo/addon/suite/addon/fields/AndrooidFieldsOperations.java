@@ -26,5 +26,14 @@ public interface AndrooidFieldsOperations {
 	 * @param The field type that will be used for the field 
 	 */
 	void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType);
+	
+	/**
+	 * Creates new entity field on entity
+	 * 
+	 * @param The entity where field will be added
+	 * @param The fieldName to use for this field. 
+	 * @param The entity to reference. 
+	 */
+	void createReferencedField(JavaType entity, JavaSymbolName fieldName, JavaType entityToReference);
 
 }

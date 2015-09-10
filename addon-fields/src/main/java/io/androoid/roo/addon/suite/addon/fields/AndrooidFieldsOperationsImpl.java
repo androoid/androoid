@@ -16,6 +16,7 @@ import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.FieldMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.operations.jsr303.FieldDetails;
 import org.springframework.roo.model.JavaSymbolName;
@@ -60,6 +61,42 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	/** {@inheritDoc} */
 	public void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
+		typeManagementService.addField(getFieldMetadata(entity, fieldName, fieldType).build());
+	}
+
+	/** {@inheritDoc} */
+	public void createReferencedField(JavaType entity, JavaSymbolName fieldName, JavaType entityToReference) {
+
+		// Check if fieldType is an entity
+		ClassOrInterfaceTypeDetails details = typeLocationService.getTypeDetails(entityToReference);
+		AnnotationMetadata androoidEntityAnnotation = details.getAnnotation(new JavaType(AndrooidEntity.class));
+
+		Validate.notNull(androoidEntityAnnotation, String.format("Referenced type '%s' is not a valid Androoid Entity.",
+				entityToReference.getSimpleTypeName()));
+
+		FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, entityToReference);
+
+		// Including params on @DatabaseField annotation
+		AnnotationMetadataBuilder databaseFieldAnnotation = newField
+				.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+
+		databaseFieldAnnotation.addBooleanAttribute("foreign", true);
+		databaseFieldAnnotation.addBooleanAttribute("foreignAutoRefresh", true);
+		databaseFieldAnnotation.addBooleanAttribute("canBeNull", true);
+
+		typeManagementService.addField(newField.build());
+	}
+
+	/**
+	 * Method that generates field metadata to be used on different create
+	 * fields methods
+	 * 
+	 * @param entity
+	 * @param fieldName
+	 * @param fieldType
+	 * @return
+	 */
+	public FieldMetadataBuilder getFieldMetadata(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
 
 		// Check if entity exists
 		Set<ClassOrInterfaceTypeDetails> allEntities = typeLocationService
@@ -90,9 +127,6 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 		Validate.isTrue(!fieldExists,
 				String.format("Field name %s exists on entity %s", fieldName, entity.getFullyQualifiedTypeName()));
 
-		// TODO: Install necessary dependencies when creates a GEO field
-		// installDependencies();
-
 		final ClassOrInterfaceTypeDetails cid = typeLocationService.getTypeDetails(entity);
 		final String physicalTypeIdentifier = cid.getDeclaredByMetadataId();
 		FieldDetails fieldDetails = new FieldDetails(physicalTypeIdentifier, fieldType, fieldName);
@@ -111,9 +145,7 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 		final FieldMetadataBuilder fieldBuilder = new FieldMetadataBuilder(fieldDetails);
 
-		// Adding field to entity
-		typeManagementService.addField(fieldBuilder.build());
-
+		return fieldBuilder;
 	}
 
 	/**

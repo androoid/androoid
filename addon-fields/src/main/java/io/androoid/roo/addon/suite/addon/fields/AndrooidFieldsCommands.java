@@ -41,7 +41,7 @@ public class AndrooidFieldsCommands implements CommandMarker {
 	 * @return true if persistence is installed.
 	 */
 	@CliAvailabilityIndicator({ "androoid field string", "androoid field number", "androoid field boolean",
-			"androoid field geo" })
+			"androoid field reference", "androoid field geo" })
 	public boolean isEntityCreationAvailable() {
 		return fieldOperations.isFieldCreationAvailable();
 	}
@@ -87,5 +87,20 @@ public class AndrooidFieldsCommands implements CommandMarker {
 
 		// Creating new field
 		fieldOperations.createField(entity, fieldName, JavaType.BOOLEAN_PRIMITIVE);
+	}
+
+	/**
+	 * This method registers the androoid field reference command.
+	 * 
+	 * @param class
+	 */
+	@CliCommand(value = "androoid field reference", help = "Creates new reference to other existing entity on selected entity.")
+	public void createReferenceField(
+			@CliOption(key = "class", mandatory = false, unspecifiedDefaultValue = "*", optionContext = UPDATE_PROJECT, help = "The name of the entity to receive this field") final JavaType entity,
+			@CliOption(key = "type", mandatory = true, optionContext = UPDATE_PROJECT, help = "The entity to reference.") final JavaType entityToReference,
+			@CliOption(key = "name", mandatory = true, optionContext = UPDATE_PROJECT, help = "The field name to use.") final JavaSymbolName fieldName) {
+
+		// Creating new field
+		fieldOperations.createReferencedField(entity, fieldName, entityToReference);
 	}
 }
