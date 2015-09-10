@@ -19,6 +19,7 @@ import org.springframework.roo.classpath.details.ConstructorMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
+import org.springframework.roo.model.RooJavaType;
 import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
@@ -94,6 +95,14 @@ public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperation
 
 		}
 		cidBuilder.addAnnotation(entityAnnotation);
+		
+		// Including @RooJavaBean annotation
+		AnnotationMetadataBuilder javaBeanAnnotation = new AnnotationMetadataBuilder(RooJavaType.ROO_JAVA_BEAN);
+		cidBuilder.addAnnotation(javaBeanAnnotation);
+		
+		// Including @RooToString annotation
+		AnnotationMetadataBuilder toStringAnnotation = new AnnotationMetadataBuilder(RooJavaType.ROO_TO_STRING);
+		cidBuilder.addAnnotation(toStringAnnotation);
 		
 		// Including empty constructor
 		cidBuilder.addConstructor(new ConstructorMetadataBuilder(declaredByMetadataId));
