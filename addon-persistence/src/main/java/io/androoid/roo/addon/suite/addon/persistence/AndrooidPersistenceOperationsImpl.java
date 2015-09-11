@@ -1,6 +1,8 @@
 package io.androoid.roo.addon.suite.addon.persistence;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,6 +12,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -23,11 +26,13 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.ArrayAttributeValue;
 import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
+import org.springframework.roo.model.EnumDetails;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -54,6 +59,8 @@ import io.androoid.roo.addon.suite.addon.project.AndrooidProjectOperations;
 @Component
 @Service
 public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOperations {
+
+	private static final String LINE_SEPARATOR = "\n";
 
 	private static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(AndrooidDatabaseHelper.class);
 
@@ -113,21 +120,21 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 					.getAnnotation(ANDROOID_DATABASE_HELPER);
 			AnnotationAttributeValue<List<ClassAttributeValue>> entitiesAttribute = androoidDatabaseHelperAnnotation
 					.getAttribute("entities");
-			
+
 			// Creating new annotation with old values
 			final List<AnnotationAttributeValue<?>> attributes = new ArrayList<AnnotationAttributeValue<?>>();
 			final List<ClassAttributeValue> desiredEntities = new ArrayList<ClassAttributeValue>();
-			
-			if(entitiesAttribute != null){
+
+			if (entitiesAttribute != null) {
 				List<ClassAttributeValue> currentEntities = entitiesAttribute.getValue();
-				
+
 				Iterator<ClassAttributeValue> currentEntitiesIt = currentEntities.iterator();
-				while(currentEntitiesIt.hasNext()){
+				while (currentEntitiesIt.hasNext()) {
 					ClassAttributeValue entity = currentEntitiesIt.next();
 					desiredEntities.add(entity);
 				}
 			}
-			
+
 			// Prepare class builder
 			ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
 					databaseHelperDetails);
@@ -137,8 +144,8 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 			// Including new types
 			desiredEntities.add(new ClassAttributeValue(new JavaSymbolName("entities"), type));
 
-			attributes.add(
-					new ArrayAttributeValue<ClassAttributeValue>(new JavaSymbolName("entities"), desiredEntities));
+			attributes
+					.add(new ArrayAttributeValue<ClassAttributeValue>(new JavaSymbolName("entities"), desiredEntities));
 
 			AnnotationMetadataBuilder databaseHelperAnnotation = new AnnotationMetadataBuilder(ANDROOID_DATABASE_HELPER,
 					attributes);
@@ -237,6 +244,113 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 		} finally {
 			IOUtils.closeQuietly(templateInputStream);
 			IOUtils.closeQuietly(outputStream);
+		}
+	}
+
+	/** {@inheritDoc} */
+	public void updatePersistenceConfigFile() {
+		try {
+			final String ormLiteConfigPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES,
+					"raw/ormlite_config.txt");
+
+			File file = new File(ormLiteConfigPath);
+
+			// if file doesnt exists, then create it
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+
+			// Generating string with content
+			Set<ClassOrInterfaceTypeDetails> currentEntities = typeLocationService
+					.findClassesOrInterfaceDetailsWithAnnotation(
+							new JavaType("io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity"));
+
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("#").append(LINE_SEPARATOR);
+			sb.append("# generated on ").append(new Date().toString()).append(LINE_SEPARATOR);
+			sb.append("#").append(LINE_SEPARATOR);
+
+			for (ClassOrInterfaceTypeDetails entity : currentEntities) {
+				// # --table-start--
+				sb.append("# --table-start--").append(LINE_SEPARATOR);
+				// dataClass=ENTITY_WITH_PACKAGE
+				sb.append("dataClass=").append(entity.getName().getFullyQualifiedTypeName()).append(LINE_SEPARATOR);
+				// tableName=entity
+				sb.append("tableName=").append(entity.getName().getSimpleTypeName().toLowerCase())
+						.append(LINE_SEPARATOR);
+				// # --table-fields-start--
+				sb.append("# --table-fields-start--").append(LINE_SEPARATOR);
+
+				List<? extends FieldMetadata> entityFields = entity.getDeclaredFields();
+
+				for (FieldMetadata field : entityFields) {
+
+					// Checking if current field is a Database field or not
+					AnnotationMetadata dbFieldAnnotation = field
+							.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+
+					if (dbFieldAnnotation != null) {
+						// # --field-start--
+						sb.append("# --field-start--").append(LINE_SEPARATOR);
+						// fieldName=fieldName
+						sb.append("fieldName=").append(field.getFieldName().toString()).append(LINE_SEPARATOR);
+
+						AnnotationAttributeValue<Boolean> generatedIdAttr = dbFieldAnnotation
+								.getAttribute("generatedId");
+						if (generatedIdAttr != null) {
+							// generatedId=value
+							sb.append("generatedId=").append(generatedIdAttr.getValue()).append(LINE_SEPARATOR);
+						}
+
+						AnnotationAttributeValue<Boolean> foreignAttr = dbFieldAnnotation.getAttribute("foreign");
+						if (foreignAttr != null) {
+							// foreign=value
+							sb.append("foreign=").append(foreignAttr.getValue()).append(LINE_SEPARATOR);
+						}
+
+						AnnotationAttributeValue<Boolean> foreignAutoRefreshAttr = dbFieldAnnotation
+								.getAttribute("foreignAutoRefresh");
+						if (foreignAutoRefreshAttr != null) {
+							// foreignAutoRefresh=value
+							sb.append("foreignAutoRefresh=").append(foreignAutoRefreshAttr.getValue())
+									.append(LINE_SEPARATOR);
+						}
+
+						AnnotationAttributeValue<EnumDetails> dataPersisterAttr = dbFieldAnnotation
+								.getAttribute("dataType");
+						if (dataPersisterAttr != null) {
+							// dataPersister=value
+							sb.append("dataPersister=").append(dataPersisterAttr.getValue().getField().toString())
+									.append(LINE_SEPARATOR);
+						}
+
+						// # --field-end--
+						sb.append("# --field-end--").append(LINE_SEPARATOR);
+
+					}
+
+				}
+
+				// # --table-fields-end--
+				sb.append("# --table-fields-end--").append(LINE_SEPARATOR);
+
+				// # --table-end--
+				sb.append("# --table-end--").append(LINE_SEPARATOR);
+				sb.append("#################################").append(LINE_SEPARATOR);
+			}
+
+			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(sb.toString());
+			bw.close();
+
+			LOGGER.log(Level.INFO,
+					"File src/main/res/raw/ormlite_config.txt has been updated with last entity model modifications!");
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

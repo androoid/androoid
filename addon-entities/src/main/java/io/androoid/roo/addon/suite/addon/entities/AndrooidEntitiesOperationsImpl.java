@@ -111,6 +111,10 @@ public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperation
 		
 		// Including entity on @AndrooidDatabaseHelper annotation
 		persistenceOperations.addDao(entity);
+		
+		// Updates persistence config file
+		persistenceOperations.updatePersistenceConfigFile();
+		
 	}
 
 	/**

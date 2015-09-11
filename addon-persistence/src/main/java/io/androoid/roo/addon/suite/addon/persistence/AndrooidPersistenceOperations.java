@@ -34,8 +34,14 @@ public interface AndrooidPersistenceOperations extends Feature {
 	 * Includes new DAO on DatabaseHelper. Will include Dao and
 	 * RuntimeExceptionDao
 	 * 
-	 * @param type of the new Dao (Ex: MyEntity)
+	 * @param type
+	 *            of the new Dao (Ex: MyEntity)
 	 */
 	void addDao(JavaType type);
+
+	/**
+	 * Updates persistence config file with all generated entities
+	 */
+	void updatePersistenceConfigFile();
 
 }

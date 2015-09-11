@@ -29,6 +29,7 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
+import io.androoid.roo.addon.suite.addon.persistence.AndrooidPersistenceOperations;
 
 /**
  * Implementation of {@link AndrooidFieldsOperations} interface.
@@ -53,6 +54,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	@Reference
 	private TypeManagementService typeManagementService;
+	
+	@Reference
+	private AndrooidPersistenceOperations persistenceOperations;
 
 	/** {@inheritDoc} */
 	public boolean isFieldCreationAvailable() {
@@ -61,7 +65,10 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	/** {@inheritDoc} */
 	public void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
+		// Create new field
 		typeManagementService.addField(getFieldMetadata(entity, fieldName, fieldType).build());
+		// Update persistence config file
+		persistenceOperations.updatePersistenceConfigFile();
 	}
 
 	/** {@inheritDoc} */
@@ -85,6 +92,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 		databaseFieldAnnotation.addBooleanAttribute("canBeNull", true);
 
 		typeManagementService.addField(newField.build());
+		
+		// Update persistence config file
+		persistenceOperations.updatePersistenceConfigFile();
 	}
 
 	/** {@inheritDoc} */
@@ -103,6 +113,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 				new JavaSymbolName("SERIALIZABLE"));
 
 		typeManagementService.addField(newField.build());
+		
+		// Update persistence config file
+		persistenceOperations.updatePersistenceConfigFile();
 	}
 
 	/**
