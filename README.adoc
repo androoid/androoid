@@ -11,21 +11,25 @@
 // PDF Asciidoctor:
 //   asciidoctor-pdf -a pdf-style=asciidoctor README.adoc
 
-= Androoid - Roo Addon Suite image:https://travis-ci.org/androoid/androoid.svg["Build Status", link="https://travis-ci.org/androoid/androoid"]
+= Androoid - Spring Roo Addon Suite image:https://travis-ci.org/androoid/androoid.svg["Build Status", link="https://travis-ci.org/androoid/androoid"]
 Getting started with Androoid development
 :page-layout: base
 :toc-placement: manual
 :Author:    Juan Carlos García
 :Email:     <jugade92@gmail.com>
 
-Thanks for checking out Androoid from Git.
+Welcome to Androoid, an Spring Roo Addon Suite.
 
-These instructions are aimed at experienced developers looking to *develop Androoid itself*. If you are new to Androoid or would simply like to try a
-release that has already been built, tested and distributed by the core development team, we recommend that you visit the http://androoid.github.io/androoid/[Androoid Home Page] and download an official release.
+Androoid is an Spring Roo Addon Suite that provides developers all necessary tools to generate Android mobile applications using Spring Roo shell.
 
-If you are looking for *Reference Documentation* you can get it http://androoid.github.io/androoid/docs/[here].
-
-If you are looking for *Androoid Tutorials* you can visit http://androoid.github.io/androoid/tutorials[Androoid Tutorials Page]
-
+Androoid was created by @jcagarcia[Juan Carlos García] and is maintained by @androoid[Androoid community].
+ 
 image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Androoid Logo"]
 
+== Team
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================================================================================================================
+|Name					|User ID				|Location				|Email				|Role
+|Juan Carlos García     |@jcagarcia[jcagarcia]	|València, Spain		|jugade92@gmail.com	| Founder, lead developer
+|======================================================================================================================
