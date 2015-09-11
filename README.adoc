@@ -1,4 +1,4 @@
-/ Build the document
+// Build the document
 // ===================
 //
 // HTML5:
