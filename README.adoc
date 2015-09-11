@@ -30,6 +30,6 @@ image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.p
 
 [width="100%",frame="topbot",options="header,footer"]
 |======================================================================================================================
-|Name					|User ID	|Location				|Role
-|Juan Carlos García     |@jcagarcia	|València, Spain		|Founder, lead developer
+|Name					|User ID								|Location					|Role
+|Juan Carlos García     |http://github.com/jcagarcia[jcagarcia]	|València, Spain			|Founder, lead developer
 |======================================================================================================================
