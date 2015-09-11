@@ -22,14 +22,14 @@ Welcome to Androoid, an Spring Roo Addon Suite.
 
 Androoid is an Spring Roo Addon Suite that provides developers all necessary tools to generate Android mobile applications using Spring Roo shell.
 
-Androoid was created by @jcagarcia[Juan Carlos García] and is maintained by @androoid[Androoid community].
+Androoid was created by http://github.com/jcagarcia[jcagarcia] and is maintained by http://github.com/androoid[Androoid community].
  
 image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Androoid Logo"]
 
-== Team
+== Team and Contributors
 
 [width="100%",frame="topbot",options="header,footer"]
-|======================================================================================================================
-|Name					|User ID								|Location					|Role
-|Juan Carlos García     |http://github.com/jcagarcia[jcagarcia]	|València, Spain			|Founder, lead developer
-|======================================================================================================================
+|=======================================================================================================================================
+|Name					|User ID								|Email				|Location					|Role
+|Juan Carlos García     |http://github.com/jcagarcia[jcagarcia]	|jugade92@gmail.com	|València, Spain			|Founder, lead developer
+|=======================================================================================================================================
