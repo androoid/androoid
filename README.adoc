@@ -25,5 +25,7 @@ release that has already been built, tested and distributed by the core developm
 
 If you are looking for *Reference Documentation* you can get it http://androoid.github.io/androoid/docs/[here].
 
+If you are looking for *Androoid Tutorials* you can visit http://androoid.github.io/androoid/tutorials[Androoid Tutorials Page]
+
 image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Androoid Logo"]
 
