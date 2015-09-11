@@ -1,6 +1,29 @@
+/ Build the document
+// ===================
+//
+// HTML5:
+//   asciidoctor -b html5 README.adoc
+//
+// HTML5 Asciidoctor:
+//   # Embed images in XHTML
+//   asciidoctor -b html5 -a data-uri README.adoc
+//
+// PDF Asciidoctor:
+//   asciidoctor-pdf -a pdf-style=asciidoctor README.adoc
+
 = Androoid - Roo Addon Suite image:https://travis-ci.org/androoid/androoid.svg["Build Status", link="https://travis-ci.org/androoid/androoid"]
+Getting started with Androoid development
+:page-layout: base
+:toc-placement: manual
+:Author:    Juan Carlos García
+:Email:     <jugade92@gmail.com>
 
-image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Roo Project",width="10%"]
+Thanks for checking out Androoid from Git.
 
-Welcome to Androoid Project!
+These instructions are aimed at experienced developers looking to *develop Androoid itself*. If you are new to Androoid or would simply like to try a
+release that has already been built, tested and distributed by the core development team, we recommend that you visit the http://androoid.github.io/androoid/[Androoid Home Page] and download an official release.
+
+If you are looking for *Reference Documentation* you can get it http://androoid.github.io/androoid/docs/[here].
+
+image:https://raw.githubusercontent.com/androoid/androoid/gh-pages/images/logo.png["Androoid Logo"]
 
