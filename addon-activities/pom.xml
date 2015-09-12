@@ -14,10 +14,10 @@
 	    <version>1.0.0.BUILD-SNAPSHOT</version>
 	    <relativePath>../osgi-bundles</relativePath>
   	</parent>
-  	<artifactId>io.androoid.roo.addon.suite.addon.project</artifactId>
+  	<artifactId>io.androoid.roo.addon.suite.addon.activities</artifactId>
   	<packaging>bundle</packaging>
-  	<name>Androoid - Add-On Project</name>
-    <description>Androoid Add-On that generates Android project structure using maven.</description>
+  	<name>Androoid - Add-On Activities</name>
+    <description>Androoid Add-On that generates Android activities based on application entity model.</description>
     
     <!-- Add-On Properties -->
     <properties>
@@ -81,5 +81,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
+        <!-- Androoid modules -->
+		<dependency>
+			<groupId>io.androoid.roo.addon.suite</groupId>
+			<artifactId>io.androoid.roo.addon.suite.support</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
     </dependencies>
 </project>

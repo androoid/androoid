@@ -1,12 +1,9 @@
 package io.androoid.roo.addon.suite.addon.project;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -21,7 +18,6 @@ import org.springframework.roo.support.util.FileUtils;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
 
@@ -59,88 +55,6 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		createPom(applicationId, minSdkVersion);
 		// Create AndroidManifest.xml file
 		createAndroidManifestFile(applicationId);
-		// Add extra artifacts
-		// addConfigurationFiles(applicationId);
-		// addAppIcon();
-	}
-
-	/**
-	 * Method that generates necessary configuration files like strings.xml and
-	 * styles.xml
-	 * 
-	 * @param applicationId
-	 */
-	private void addConfigurationFiles(JavaPackage applicationId) {
-		// Copying basic strings.xml file
-		InputStream stringsXmlFile = FileUtils.getInputStream(getClass(), "values/strings.xml");
-
-		final Document stringsFile = XmlUtils.readXml(stringsXmlFile);
-		final Element stringsRoot = stringsFile.getDocumentElement();
-
-		NodeList strings = stringsRoot.getElementsByTagName("string");
-		for (int i = 0; i < strings.getLength(); i++) {
-			Element item = (Element) strings.item(i);
-			if (item.getAttribute("name").equals("app_name")) {
-				item.setTextContent(applicationId.getLastElement());
-			}
-		}
-
-		final String stringsPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "values/strings.xml");
-		final MutableFile mutableFile = fileManager.createFile(stringsPath);
-
-		XmlUtils.writeXml(mutableFile.getOutputStream(), stringsFile);
-
-		// Copying basic styles.xml file
-		InputStream stylesXmlFile = FileUtils.getInputStream(getClass(), "values/styles.xml");
-
-		final Document stylesFile = XmlUtils.readXml(stylesXmlFile);
-
-		final String stylesPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "values/styles.xml");
-		final MutableFile mutableStylesFile = fileManager.createFile(stylesPath);
-
-		XmlUtils.writeXml(mutableStylesFile.getOutputStream(), stylesFile);
-
-	}
-
-	/**
-	 * Method that includes generated App Icon
-	 */
-	private void addAppIcon() {
-		// Copying App icon
-		final String appIconFile = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "mipmap-xhdpi/app_icon.png");
-		final String whiteIconFile = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "drawable/logo_white.png");
-
-		InputStream inputStream = null;
-		InputStream inputStreamWhite = null;
-		OutputStream outputStream = null;
-		OutputStream outputStreamWhite = null;
-
-		try {
-			inputStream = FileUtils.getInputStream(getClass(), "mipmap-xhdpi/app_icon.png");
-			inputStreamWhite = FileUtils.getInputStream(getClass(), "drawable/logo_white.png");
-			if (!fileManager.exists(appIconFile)) {
-				outputStream = fileManager.createFile(appIconFile).getOutputStream();
-				outputStreamWhite = fileManager.createFile(whiteIconFile).getOutputStream();
-			}
-			if (outputStream != null) {
-				IOUtils.copy(inputStream, outputStream);
-			}
-			if (outputStreamWhite != null) {
-				IOUtils.copy(inputStreamWhite, outputStreamWhite);
-			}
-		} catch (final IOException ioe) {
-			throw new IllegalStateException(ioe);
-		} finally {
-			IOUtils.closeQuietly(inputStream);
-			if (outputStream != null) {
-				IOUtils.closeQuietly(outputStream);
-			}
-			if (outputStreamWhite != null) {
-				IOUtils.closeQuietly(outputStreamWhite);
-			}
-
-		}
-
 	}
 
 	/**

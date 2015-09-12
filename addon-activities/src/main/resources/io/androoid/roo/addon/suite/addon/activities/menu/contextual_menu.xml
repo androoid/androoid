@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/item_show"
+        android:icon="@android:drawable/ic_menu_view"
+        android:showAsAction="ifRoom|withText"
+        android:title="Show"
+        android:titleCondensed="Show">
+    </item>
+
+    <item
+        android:id="@+id/item_edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:showAsAction="ifRoom|withText"
+        android:title="Edit"
+        android:titleCondensed="Edit">
+    </item>
+
+    <item
+        android:id="@+id/item_delete"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="ifRoom|withText"
+        android:title="Delete"
+        android:titleCondensed="Delete">
+    </item>
+
+
+</menu>
