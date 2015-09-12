@@ -349,9 +349,6 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 			bw.write(sb.toString());
 			bw.close();
 
-			LOGGER.log(Level.INFO,
-					"File src/main/res/raw/ormlite_config.txt has been updated with last entity model modifications!");
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
