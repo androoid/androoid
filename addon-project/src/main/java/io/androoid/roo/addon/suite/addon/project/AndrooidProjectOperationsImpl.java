@@ -1,7 +1,5 @@
 package io.androoid.roo.addon.suite.addon.project;
 
-import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +22,8 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
 
 /**
  * Implementation of {@link AndrooidProjectOperations} interface.
@@ -54,15 +54,14 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	}
 
 	/** {@inheritDoc} */
-	public void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion,
-			AvailableSDKs targetSdkVersion) {
+	public void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion, AvailableSDKs targetSdkVersion) {
 		// Create pom.xml file
 		createPom(applicationId, minSdkVersion);
 		// Create AndroidManifest.xml file
 		createAndroidManifestFile(applicationId);
 		// Add extra artifacts
-		addConfigurationFiles(applicationId);
-		addAppIcon();
+		// addConfigurationFiles(applicationId);
+		// addAppIcon();
 	}
 
 	/**
@@ -73,8 +72,7 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	 */
 	private void addConfigurationFiles(JavaPackage applicationId) {
 		// Copying basic strings.xml file
-		InputStream stringsXmlFile = FileUtils.getInputStream(getClass(),
-				"values/strings.xml");
+		InputStream stringsXmlFile = FileUtils.getInputStream(getClass(), "values/strings.xml");
 
 		final Document stringsFile = XmlUtils.readXml(stringsXmlFile);
 		final Element stringsRoot = stringsFile.getDocumentElement();
@@ -87,22 +85,18 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 			}
 		}
 
-		final String stringsPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "values/strings.xml");
+		final String stringsPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "values/strings.xml");
 		final MutableFile mutableFile = fileManager.createFile(stringsPath);
 
 		XmlUtils.writeXml(mutableFile.getOutputStream(), stringsFile);
 
 		// Copying basic styles.xml file
-		InputStream stylesXmlFile = FileUtils.getInputStream(getClass(),
-				"values/styles.xml");
+		InputStream stylesXmlFile = FileUtils.getInputStream(getClass(), "values/styles.xml");
 
 		final Document stylesFile = XmlUtils.readXml(stylesXmlFile);
 
-		final String stylesPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "values/styles.xml");
-		final MutableFile mutableStylesFile = fileManager
-				.createFile(stylesPath);
+		final String stylesPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "values/styles.xml");
+		final MutableFile mutableStylesFile = fileManager.createFile(stylesPath);
 
 		XmlUtils.writeXml(mutableStylesFile.getOutputStream(), stylesFile);
 
@@ -113,10 +107,8 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	 */
 	private void addAppIcon() {
 		// Copying App icon
-		final String appIconFile = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "mipmap-xhdpi/app_icon.png");
-		final String whiteIconFile = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN_RES, "drawable/logo_white.png");
+		final String appIconFile = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "mipmap-xhdpi/app_icon.png");
+		final String whiteIconFile = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_RES, "drawable/logo_white.png");
 
 		InputStream inputStream = null;
 		InputStream inputStreamWhite = null;
@@ -124,15 +116,11 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		OutputStream outputStreamWhite = null;
 
 		try {
-			inputStream = FileUtils.getInputStream(getClass(),
-					"mipmap-xhdpi/app_icon.png");
-			inputStreamWhite = FileUtils.getInputStream(getClass(),
-					"drawable/logo_white.png");
+			inputStream = FileUtils.getInputStream(getClass(), "mipmap-xhdpi/app_icon.png");
+			inputStreamWhite = FileUtils.getInputStream(getClass(), "drawable/logo_white.png");
 			if (!fileManager.exists(appIconFile)) {
-				outputStream = fileManager.createFile(appIconFile)
-						.getOutputStream();
-				outputStreamWhite = fileManager.createFile(whiteIconFile)
-						.getOutputStream();
+				outputStream = fileManager.createFile(appIconFile).getOutputStream();
+				outputStreamWhite = fileManager.createFile(whiteIconFile).getOutputStream();
 			}
 			if (outputStream != null) {
 				IOUtils.copy(inputStream, outputStream);
@@ -161,39 +149,30 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	 * @param applicationId
 	 * @param minSdkVersion
 	 */
-	private void createPom(JavaPackage applicationId,
-			AvailableSDKs minSdkVersion) {
-		Validate.isTrue(!fileManager.exists("pom.xml"),
-				"'pom.xml' file exists!");
+	private void createPom(JavaPackage applicationId, AvailableSDKs minSdkVersion) {
+		Validate.isTrue(!fileManager.exists("pom.xml"), "'pom.xml' file exists!");
 
 		// Load the pom template
-		final InputStream templateInputStream = FileUtils.getInputStream(
-				getClass(), "pom-template.xml");
+		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "pom-template.xml");
 
 		final Document pom = XmlUtils.readXml(templateInputStream);
 		final Element root = pom.getDocumentElement();
 
-		Element groupIdElement = (Element) root.getElementsByTagName("groupId")
-				.item(0);
-		groupIdElement.setTextContent(applicationId
-				.getFullyQualifiedPackageName());
+		Element groupIdElement = (Element) root.getElementsByTagName("groupId").item(0);
+		groupIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
 
-		Element artifactIdElement = (Element) root.getElementsByTagName(
-				"artifactId").item(0);
-		artifactIdElement.setTextContent(applicationId
-				.getFullyQualifiedPackageName());
+		Element artifactIdElement = (Element) root.getElementsByTagName("artifactId").item(0);
+		artifactIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
 
-		Element platformElement = (Element) root.getElementsByTagName(
-				"platform").item(0);
+		Element platformElement = (Element) root.getElementsByTagName("platform").item(0);
 		platformElement.setTextContent(minSdkVersion.getApiLevel().toString());
-		
-        final List<Element> versionElements = XmlUtils.findElements("//*[.='JAVA_VERSION']", root);
-        for (final Element versionElement : versionElements) {
-            versionElement.setTextContent("1.7");
-        }
 
-		final MutableFile pomMutableFile = fileManager.createFile(pathResolver
-				.getRoot() + "/pom.xml");
+		final List<Element> versionElements = XmlUtils.findElements("//*[.='JAVA_VERSION']", root);
+		for (final Element versionElement : versionElements) {
+			versionElement.setTextContent("1.7");
+		}
+
+		final MutableFile pomMutableFile = fileManager.createFile(pathResolver.getRoot() + "/pom.xml");
 
 		XmlUtils.writeXml(pomMutableFile.getOutputStream(), pom);
 
@@ -207,23 +186,18 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	private void createAndroidManifestFile(JavaPackage applicationId) {
 
 		// Check if AndroidManifest file is already created
-		Validate.isTrue(
-				!fileManager.exists(pathResolver.getRoot().concat(
-						"/src/main/AndroidManifest.xml")),
+		Validate.isTrue(!fileManager.exists(pathResolver.getRoot().concat("/src/main/AndroidManifest.xml")),
 				"'AndroidManifest.xml' file exists!");
 
 		// Load the AndroidManifest template
-		final InputStream templateInputStream = FileUtils.getInputStream(
-				getClass(), "AndroidManifest-template.xml");
+		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "AndroidManifest-template.xml");
 
 		final Document androidManifest = XmlUtils.readXml(templateInputStream);
 		final Element root = androidManifest.getDocumentElement();
 
-		root.setAttribute("package",
-				applicationId.getFullyQualifiedPackageName());
+		root.setAttribute("package", applicationId.getFullyQualifiedPackageName());
 
-		final String manifestPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN, "AndroidManifest.xml");
+		final String manifestPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
 		final MutableFile mutableFile = fileManager.createFile(manifestPath);
 
 		XmlUtils.writeXml(mutableFile.getOutputStream(), androidManifest);
@@ -239,8 +213,7 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	}
 
 	public boolean isInstalledInModule(String moduleName) {
-		final String manifestPath = pathResolver.getFocusedIdentifier(
-				Path.SRC_MAIN, "AndroidManifest.xml");
+		final String manifestPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
 		return fileManager.exists(manifestPath);
 	}
 }
