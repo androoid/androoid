@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.process.manager.FileManager;
+import org.springframework.roo.process.manager.MutableFile;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.ProjectOperations;
 import org.w3c.dom.Document;
@@ -64,5 +65,14 @@ public interface AndrooidOperationsUtils {
 	 * @return
 	 */
 	public LogicalPath getMainPath(ProjectOperations projectOperations);
+
+	/**
+	 * Returns AndroidManifest file
+	 * 
+	 * @param projectOperations
+	 * @param fileManager
+	 * @return MutableFile
+	 */
+	public MutableFile getAndroidManifestMutableFile(ProjectOperations projectOperations, FileManager fileManager);
 
 }
