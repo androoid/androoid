@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +20,10 @@ import org.springframework.roo.project.Path;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.support.osgi.OSGiUtils;
 import org.springframework.roo.support.util.FileUtils;
+import org.springframework.roo.support.util.XmlUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * 
@@ -92,6 +99,43 @@ public class AndrooidOperationsUtilsImpl implements AndrooidOperationsUtils {
 	}
 
 	/**
+	 * Insert a new element of type {@code nodeName} into {@code parent} with
+	 * attributes declared in {@code attributes}.
+	 *
+	 * @param doc
+	 * @param parent
+	 * @param nodeName
+	 * @param attributes
+	 */
+	public Element insertXmlElement(Document doc, Element parent, String nodeName, Map<String, String> attributes) {
+
+		Element newElement = doc.createElement(nodeName);
+
+		for (Entry<String, String> attribute : attributes.entrySet()) {
+			String name = attribute.getKey();
+			String value = attribute.getValue();
+			newElement.setAttribute(name, value);
+		}
+
+		// insert element as last element of the node type
+		Node inserPosition = null;
+		// Locate last node of this type
+		List<Element> elements = XmlUtils.findElements(nodeName, parent);
+		if (!elements.isEmpty()) {
+			inserPosition = elements.get(elements.size() - 1).getNextSibling();
+		}
+
+		// Add node
+		if (inserPosition == null) {
+			parent.appendChild(newElement);
+		} else {
+			parent.insertBefore(newElement, inserPosition);
+		}
+
+		return newElement;
+	}
+
+	/**
 	 * Gets the {@code src/main/res} logicalPath
 	 * 
 	 * @param projectOperations
@@ -101,4 +145,13 @@ public class AndrooidOperationsUtilsImpl implements AndrooidOperationsUtils {
 		return LogicalPath.getInstance(Path.SRC_MAIN_RES, projectOperations.getFocusedModuleName());
 	}
 
+	/**
+	 * Gets the {@code src/main} logicalPath
+	 * 
+	 * @param projectOperations
+	 * @return
+	 */
+	public LogicalPath getMainPath(ProjectOperations projectOperations) {
+		return LogicalPath.getInstance(Path.SRC_MAIN, projectOperations.getFocusedModuleName());
+	}
 }

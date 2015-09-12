@@ -1,9 +1,13 @@
 package io.androoid.roo.addon.suite.support;
 
+import java.util.Map;
+
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.ProjectOperations;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Interface that provides different utils method that could be used by all
@@ -33,14 +37,32 @@ public interface AndrooidOperationsUtils {
 	 */
 	public void updateDirectoryContents(String sourceAntPath, String targetDirectory, FileManager fileManager,
 			ComponentContext context, Class<?> clazz);
-	
 
-    /**
-     * Gets the {@code src/main/res} logicalPath
-     * 
-     * @param projectOperations
-     * @return
-     */
-    public LogicalPath getResourcesPath(ProjectOperations projectOperations);
+	/**
+	 * Insert a new element of type {@code nodeName} into {@code parent} with
+	 * attributes declared in {@code attributes}.
+	 * 
+	 * @param doc
+	 * @param parent
+	 * @param nodeName
+	 * @param attributes
+	 */
+	public Element insertXmlElement(Document doc, Element parent, String nodeName, Map<String, String> attributes);
+
+	/**
+	 * Gets the {@code src/main/res} logicalPath
+	 * 
+	 * @param projectOperations
+	 * @return
+	 */
+	public LogicalPath getResourcesPath(ProjectOperations projectOperations);
+
+	/**
+	 * Gets the {@code src/main} logicalPath
+	 * 
+	 * @param projectOperations
+	 * @return
+	 */
+	public LogicalPath getMainPath(ProjectOperations projectOperations);
 
 }
