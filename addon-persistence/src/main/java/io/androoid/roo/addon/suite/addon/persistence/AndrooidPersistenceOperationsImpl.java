@@ -32,6 +32,7 @@ import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.ArrayAttributeValue;
 import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
+import org.springframework.roo.classpath.scanner.MemberDetailsScanner;
 import org.springframework.roo.model.EnumDetails;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
@@ -81,6 +82,8 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 	private TypeLocationService typeLocationService;
 	@Reference
 	private TypeManagementService typeManagementService;
+	@Reference
+	private MemberDetailsScanner memberDetailsScanner;
 
 	/** {@inheritDoc} */
 	public boolean isPersistenceSetupAvailable() {
@@ -282,7 +285,8 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
 				// # --table-fields-start--
 				sb.append("# --table-fields-start--").append(LINE_SEPARATOR);
 
-				List<? extends FieldMetadata> entityFields = entity.getDeclaredFields();
+				List<FieldMetadata> entityFields = memberDetailsScanner.getMemberDetails(getClass().getName(), entity)
+						.getFields();
 
 				for (FieldMetadata field : entityFields) {
 
