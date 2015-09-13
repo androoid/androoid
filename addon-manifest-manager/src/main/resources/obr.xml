@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<repository>
+	<resource>
+		<capability name="roo-addon">
+			<p n="command-add-permission" v="androoid permission add" />
+			<p n="command-remove-permission" v="androoid permission remove" />
+		</capability>
+	</resource>
+</repository>

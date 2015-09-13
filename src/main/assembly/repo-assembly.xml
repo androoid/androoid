@@ -26,6 +26,8 @@
 				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.activities
 				</include>
+				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.addon.manifest.manager
+				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.support
 				</include>
 				<include>io.androoid.roo.addon.suite:io.androoid.roo.addon.suite.roo-addon-suite

@@ -46,6 +46,7 @@
   <modules>
     <module>osgi-bundles</module>
     <module>support</module>
+    <module>addon-manifest-manager</module>
     <module>addon-project</module>
     <module>addon-persistence</module>
     <module>addon-entities</module>
