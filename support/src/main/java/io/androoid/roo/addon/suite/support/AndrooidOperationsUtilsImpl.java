@@ -156,27 +156,4 @@ public class AndrooidOperationsUtilsImpl implements AndrooidOperationsUtils {
 		return LogicalPath.getInstance(Path.SRC_MAIN, projectOperations.getFocusedModuleName());
 	}
 
-	/**
-	 * Returns AndroidManifest file
-	 * 
-	 * @param projectOperations
-	 * @param fileManager
-	 * @return MutableFile
-	 */
-	public MutableFile getAndroidManifestMutableFile(ProjectOperations projectOperations, FileManager fileManager) {
-		LogicalPath resourcesPath = getMainPath(projectOperations);
-		String androidManifestXmlPath = projectOperations.getPathResolver().getIdentifier(resourcesPath,
-				"AndroidManifest.xml");
-		Validate.isTrue(fileManager.exists(androidManifestXmlPath), "src/main/AndroidManifest.xml not found");
-
-		MutableFile androidManifestXmlMutableFile = null;
-
-		try {
-			androidManifestXmlMutableFile = fileManager.updateFile(androidManifestXmlPath);
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-
-		return androidManifestXmlMutableFile;
-	}
 }

@@ -66,13 +66,4 @@ public interface AndrooidOperationsUtils {
 	 */
 	public LogicalPath getMainPath(ProjectOperations projectOperations);
 
-	/**
-	 * Returns AndroidManifest file
-	 * 
-	 * @param projectOperations
-	 * @param fileManager
-	 * @return MutableFile
-	 */
-	public MutableFile getAndroidManifestMutableFile(ProjectOperations projectOperations, FileManager fileManager);
-
 }

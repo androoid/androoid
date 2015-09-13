@@ -35,7 +35,7 @@ public class AndrooidActivitiesCommands implements CommandMarker {
 	 * @return true if exists an androoid project in the current folder.
 	 */
 	@CliAvailabilityIndicator("androoid activity layer setup")
-	public boolean isProjectSetupAvailable() {
+	public boolean isSetupAvailable() {
 		return activitiesOperations.isSetupAvailable();
 	}
 

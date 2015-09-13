@@ -1,7 +1,9 @@
 package io.androoid.roo.addon.suite.addon.activities;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -21,6 +23,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import io.androoid.roo.addon.suite.addon.manifest.manager.AndrooidManifestOperations;
 import io.androoid.roo.addon.suite.support.AndrooidOperationsUtils;
 
 /**
@@ -48,6 +51,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 	private PathResolver pathResolver;
 	@Reference
 	private AndrooidOperationsUtils operationsUtils;
+	@Reference
+	private AndrooidManifestOperations manifestOperations;
 
 	protected void activate(final ComponentContext componentContext) {
 		cContext = componentContext;
@@ -56,7 +61,6 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 	/** {@inheritDoc} */
 	public boolean isSetupAvailable() {
 		return projectOperations.isFeatureInstalled("androoid-project");
-
 	}
 
 	/** {@inheritDoc} */
@@ -65,83 +69,21 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		addBasicFiles(projectOperations.getFocusedTopLevelPackage());
 
 		// Update AndroidManifest.xml with basic configuration
-		updateBasicManifestConfiguration();
+		Map<String, String> attributes = new HashMap<String, String>();
+		attributes.put("android:icon", "@mipmap/app_icon");
+		attributes.put("android:label", "@string/app_name");
+		attributes.put("android:theme", "@style/AppTheme");
+		manifestOperations.addApplicationConfig(attributes);
 
 		// Update AndroidManifest.xml file with basic permissions
-		addBasicPermissions();
-
-	}
-
-	/**
-	 * Method that update application tag on AndroidManifest.xml file
-	 */
-	private void updateBasicManifestConfiguration() {
-
-		try {
-			MutableFile androidManifestXmlMutableFile = operationsUtils.getAndroidManifestMutableFile(projectOperations,
-					fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
-
-			// Getting application tag
-			Element applicationElement = (Element) root.getElementsByTagName("application").item(0);
-
-			// Including basic configuration
-			applicationElement.setAttribute("android:icon", "@mipmap/app_icon");
-			applicationElement.setAttribute("android:label", "@string/app_name");
-			applicationElement.setAttribute("android:theme", "@style/AppTheme");
-
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	/**
-	 * Method that adds permissions definition on AndroidManifest.xml file
-	 */
-	private void addBasicPermissions() {
-
-		try {
-			MutableFile androidManifestXmlMutableFile = operationsUtils.getAndroidManifestMutableFile(projectOperations,
-					fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
-
-			// Create permissions
-			Map<String, String> attributesLocation = new HashMap<String, String>();
-			attributesLocation.put("android:name", "android.permission.ACCESS_COARSE_LOCATION");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesLocation);
-
-			Map<String, String> attributesFineLocation = new HashMap<String, String>();
-			attributesFineLocation.put("android:name", "android.permission.ACCESS_FINE_LOCATION");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesFineLocation);
-
-			Map<String, String> attributesWifiState = new HashMap<String, String>();
-			attributesWifiState.put("android:name", "android.permission.ACCESS_WIFI_STATE");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesWifiState);
-
-			Map<String, String> attributesNetworkState = new HashMap<String, String>();
-			attributesNetworkState.put("android:name", "android.permission.ACCESS_NETWORK_STATE");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesNetworkState);
-
-			Map<String, String> attributesInternet = new HashMap<String, String>();
-			attributesInternet.put("android:name", "android.permission.INTERNET");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesInternet);
-
-			Map<String, String> attributesWriteExternal = new HashMap<String, String>();
-			attributesWriteExternal.put("android:name", "android.permission.WRITE_EXTERNAL_STORAGE");
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", attributesWriteExternal);
-
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		List<String> permissionsNames = new ArrayList<String>();
+		permissionsNames.add("android.permission.ACCESS_COARSE_LOCATION");
+		permissionsNames.add("android.permission.ACCESS_FINE_LOCATION");
+		permissionsNames.add("android.permission.ACCESS_WIFI_STATE");
+		permissionsNames.add("android.permission.ACCESS_NETWORK_STATE");
+		permissionsNames.add("android.permission.INTERNET");
+		permissionsNames.add("android.permission.WRITE_EXTERNAL_STORAGE");
+		manifestOperations.addPermissions(permissionsNames);
 
 	}
 
