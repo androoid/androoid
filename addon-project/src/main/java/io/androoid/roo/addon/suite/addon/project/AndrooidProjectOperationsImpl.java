@@ -19,6 +19,7 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import io.androoid.roo.addon.suite.addon.manifest.manager.AndrooidManifestOperations;
 import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
 
 /**
@@ -42,6 +43,8 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 	private ProjectOperations projectOperations;
 	@Reference
 	private PathResolver pathResolver;
+	@Reference
+	private AndrooidManifestOperations manifestOperations;
 
 	/** {@inheritDoc} */
 	public boolean isCreateProjectAvailable() {
@@ -54,7 +57,7 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		// Create pom.xml file
 		createPom(applicationId, minSdkVersion);
 		// Create AndroidManifest.xml file
-		createAndroidManifestFile(applicationId);
+		manifestOperations.createAndroidManifestFile(applicationId);
 	}
 
 	/**
@@ -89,32 +92,6 @@ public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations 
 		final MutableFile pomMutableFile = fileManager.createFile(pathResolver.getRoot() + "/pom.xml");
 
 		XmlUtils.writeXml(pomMutableFile.getOutputStream(), pom);
-
-	}
-
-	/**
-	 * A private method which creates AndroidManifest.xml File
-	 * 
-	 * @param applicationId
-	 */
-	private void createAndroidManifestFile(JavaPackage applicationId) {
-
-		// Check if AndroidManifest file is already created
-		Validate.isTrue(!fileManager.exists(pathResolver.getRoot().concat("/src/main/AndroidManifest.xml")),
-				"'AndroidManifest.xml' file exists!");
-
-		// Load the AndroidManifest template
-		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "AndroidManifest-template.xml");
-
-		final Document androidManifest = XmlUtils.readXml(templateInputStream);
-		final Element root = androidManifest.getDocumentElement();
-
-		root.setAttribute("package", applicationId.getFullyQualifiedPackageName());
-
-		final String manifestPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
-		final MutableFile mutableFile = fileManager.createFile(manifestPath);
-
-		XmlUtils.writeXml(mutableFile.getOutputStream(), androidManifest);
 
 	}
 
