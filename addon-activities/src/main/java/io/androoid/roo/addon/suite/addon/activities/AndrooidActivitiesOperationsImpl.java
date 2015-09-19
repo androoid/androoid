@@ -183,8 +183,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		// AndrooidActivityList implements AbsListView.MultiChoiceModeListener
 		// and AdapterView.OnItemClickListener
-		//cidBuilder.addImplementsType(new JavaType());
-		//cidBuilder.addImplementsType(new JavaType("android.widget.AbsListView.OnItemClickListener"));
+		cidBuilder.addImplementsType(new JavaType("android.widget.AbsListView.MultiChoiceModeListener").getBaseType());
+		cidBuilder.addImplementsType(new JavaType("android.widget.AdapterView.OnItemClickListener").getBaseType());
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
