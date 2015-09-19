@@ -2,7 +2,9 @@
 <repository>
 	<resource>
 		<capability name="roo-addon">
-			<p n="command-activities-setup" v="androoid activity layer setup" />
+			<p n="command-activities-setup" v="androoid activity setup" />
+			<p n="command-activities-add" v="androoid activity add" />
+			<p n="command-activities-all" v="androoid activity all" />
 		</capability>
 	</resource>
 </repository>

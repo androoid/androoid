@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,14 @@ import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
+import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.DefaultImportMetadata;
+import org.springframework.roo.classpath.details.ImportMetadata;
+import org.springframework.roo.classpath.details.ImportMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.JavaPackage;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -35,7 +42,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidListActivity;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidMainActivity;
+import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
 import io.androoid.roo.addon.suite.addon.manifest.manager.AndrooidManifestOperations;
 import io.androoid.roo.addon.suite.support.AndrooidOperationsUtils;
 
@@ -108,6 +117,76 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		// Generates Main Activity by default.
 		generatesMainActivity();
 
+	}
+
+	/** {@inheritDoc} */
+	public void add(JavaType entity) {
+
+		// Checks if current entity is annotated with @AndrooidEntity
+		ClassOrInterfaceTypeDetails entityDetails = typeLocationService.getTypeDetails(entity);
+		AnnotationMetadata androoidEntityAnnotation = entityDetails.getAnnotation(new JavaType(AndrooidEntity.class));
+
+		Validate.notNull(androoidEntityAnnotation,
+				String.format(
+						"ERROR: Provided entity %s is not annotated with @AndrooidEntity. "
+								+ "Only Androoid Entity classes could be used to generate new Androoid Activities.",
+						entity.getSimpleTypeName()));
+
+		// Generate new List activity
+		addListActivity(entity);
+
+		// Generate new Form activity
+		// addFormActivity(entity);
+
+		// Add new activity button to main view
+		// addActivityToMainView(entity);
+	}
+
+	/**
+	 * This method creates new AndrooidListActivity related with an specified
+	 * entity that will allow users to list data about the specified entity.
+	 * 
+	 * @param entity
+	 *            JavaType that will be used to generate the related activity
+	 */
+	private void addListActivity(JavaType entity) {
+
+		// Creates new activity JavaType
+		String entityName = entity.getSimpleTypeName();
+		String listActivityName = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("ListActivity");
+		JavaType listActivity = new JavaType(listActivityName);
+
+		int modifier = Modifier.PUBLIC;
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(listActivity,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", listActivity);
+
+		// Prepare class builder
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, modifier, listActivity, PhysicalTypeCategory.CLASS);
+
+		// Including @AndrooidListActivity annotation
+		AnnotationMetadataBuilder listActivityAnnotation = new AnnotationMetadataBuilder(
+				new JavaType(AndrooidListActivity.class));
+		listActivityAnnotation.addClassAttribute("entity", entity);
+		cidBuilder.addAnnotation(listActivityAnnotation);
+
+		// AndrooidActivityList extends OrmLiteBaseListActivity<DatabaseHelper>
+		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseListActivity", 0,
+				DataType.TYPE, null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
+						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
+		cidBuilder.addExtendsTypes(extendsType);
+
+		// AndrooidActivityList implements AbsListView.MultiChoiceModeListener
+		// and AdapterView.OnItemClickListener
+		//cidBuilder.addImplementsType(new JavaType());
+		//cidBuilder.addImplementsType(new JavaType("android.widget.AbsListView.OnItemClickListener"));
+
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
 
 	/**
