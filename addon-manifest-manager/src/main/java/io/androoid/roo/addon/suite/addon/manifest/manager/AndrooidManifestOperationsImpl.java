@@ -163,23 +163,32 @@ public class AndrooidManifestOperationsImpl implements AndrooidManifestOperation
 			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
 			Document androidManifestXml = XmlUtils.getDocumentBuilder()
 					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
-			
+
+			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+
+			if (applicationElements.getLength() < 0) {
+				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
+			}
+
+			// Getting first application element
+			Element applicationElement = (Element) applicationElements.item(0);
+
 			Map<String, String> attributes = new HashMap<String, String>();
 			attributes.put("android:name", name);
 			attributes.put("android:label", label);
 			attributes.put("android:configChanges", configChanges);
 			attributes.put("android:screenOrientation", screenOrientation);
-			Element activity = operationsUtils.insertXmlElement(androidManifestXml, root, "activity", attributes);
+			Element activity = operationsUtils.insertXmlElement(androidManifestXml, applicationElement, "activity",
+					attributes);
 
 			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
-			
+
 			return activity;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 
 	}
@@ -190,32 +199,38 @@ public class AndrooidManifestOperationsImpl implements AndrooidManifestOperation
 			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
 			Document androidManifestXml = XmlUtils.getDocumentBuilder()
 					.parse(androidManifestXmlMutableFile.getInputStream());
-			
-			Element root = androidManifestXml.getDocumentElement();
-			
-			NodeList allChilds = root.getChildNodes();
-			for(int i=0; i < allChilds.getLength(); i++){
+
+			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+
+			if (applicationElements.getLength() < 0) {
+				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
+			}
+
+			// Getting first application element
+			Element applicationElement = (Element) applicationElements.item(0);
+
+			NodeList allChilds = applicationElement.getChildNodes();
+			for (int i = 0; i < allChilds.getLength(); i++) {
 				Node child = allChilds.item(i);
-				
-				if(child.isEqualNode(activity)){
+
+				if (child.isEqualNode(activity)) {
 					Element intentFilter = androidManifestXml.createElement("intent-filter");
-					
+
 					Element actionElement = androidManifestXml.createElement("action");
 					actionElement.setAttribute("android:name", actionName);
-					
+
 					Element categoryElement = androidManifestXml.createElement("category");
 					categoryElement.setAttribute("android:name", categoryName);
-					
+
 					intentFilter.appendChild(actionElement);
 					intentFilter.appendChild(categoryElement);
-					
+
 					// Append intent-filter element to current activity
 					child.appendChild(intentFilter);
 				}
 			}
-			
+
 			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
-			
 
 		} catch (Exception e) {
 			e.printStackTrace();
