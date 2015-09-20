@@ -102,6 +102,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnOptionsItemSelectedMethod());
 		builder.addMethod(getOnItemCheckedStateChangedMethod());
 		builder.addMethod(getOnCreateActionModeMethod());
+		builder.addMethod(getOnPrepareActionModeMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -605,6 +606,57 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// return true
 		bodyBuilder.appendFormalLine("return true;");
 
+	}
+
+	/**
+	 * Method that generates onPrepareActionMode ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnPrepareActionModeMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnPrepareActionModeMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onPrepareActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called to refresh an action mode's action menu whenever it is invalidated. \n \n"
+						+ "@param mode ActionMode being created. \n"
+						+ "@param menu Menu used to populate action buttons. \n \n"
+						+ "@return true if the menu or action mode was updated, false otherwise. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onPrepareActionMode ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnPrepareActionModeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// return false;
+		bodyBuilder.appendFormalLine("return false;");
 	}
 
 	@Override
