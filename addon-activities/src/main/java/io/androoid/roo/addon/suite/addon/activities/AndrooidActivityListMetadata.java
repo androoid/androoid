@@ -104,6 +104,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnCreateActionModeMethod());
 		builder.addMethod(getOnPrepareActionModeMethod());
 		builder.addMethod(getOnActionItemClickedMethod());
+		builder.addMethod(getOnDestroyActionModeMethod());
+		builder.addMethod(getOnItemClickMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -806,6 +808,139 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// return true;
 		bodyBuilder.appendFormalLine("return true;");
 
+	}
+
+	/**
+	 * Method that generates onDestroyActionMode ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnDestroyActionModeMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnDestroyActionModeMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onDestroyActionMode"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when an action mode is about to be exited and destroyed. \n \n"
+						+ "@param mode The current ActionMode being destroyed. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onDestroyActionMode ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnDestroyActionModeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// Cleaning selected authors
+		bodyBuilder.appendFormalLine("// Cleaning selected authors");
+
+		// selectedEntity.clear();
+		bodyBuilder.appendFormalLine(String.format("selected%s.clear();", entity.getSimpleTypeName()));
+
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// fillEntityList();
+		bodyBuilder.appendFormalLine(String.format("fill%sList();", entity.getSimpleTypeName()));
+		bodyBuilder.indentRemove();
+
+		// } catch (SQLException e) {
+		bodyBuilder.appendFormalLine(String.format("} catch (%s e) {",
+				new JavaType("java.sql.SQLException").getNameIncludingTypeParameters(false, importResolver)));
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+	}
+
+	/**
+	 * Method that generates onItemClick ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnItemClickMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
+				new JavaType("android.widget.AdapterView", 0, DataType.TYPE, null, Arrays.asList(new JavaType("?")))));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
+				new JavaType("android.view.View")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
+				JavaType.INT_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
+				JavaType.LONG_PRIMITIVE));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("parent"));
+		parameterNames.add(new JavaSymbolName("view"));
+		parameterNames.add(new JavaSymbolName("position"));
+		parameterNames.add(new JavaSymbolName("id"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnItemClickMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onItemClick"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Callback method to be invoked when an item in this AdapterView has \n"
+						+ "been clicked. \n \n"
+						+ "Implementers can call getItemAtPosition(position) if they need \n"
+						+ "to access the data associated with the selected item. \n \n"
+						+ "@param parent   The AdapterView where the click happened. \n"
+						+ "@param view     The view within the AdapterView that was clicked (this \n"
+						+ "                will be a view provided by the adapter) \n"
+						+ "@param position The position of the view in the adapter. \n"
+						+ "@param id       The row id of the item that was clicked. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onItemClick ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnItemClickMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// TODO: Generate onItemClick method body
 	}
 
 	@Override
