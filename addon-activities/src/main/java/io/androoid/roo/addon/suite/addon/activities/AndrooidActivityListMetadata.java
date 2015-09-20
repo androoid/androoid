@@ -95,6 +95,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Adding necessary methods
 		builder.addMethod(getOnCreateMethod());
+		builder.addMethod(getOnCreateOptionsMenuMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -128,8 +129,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	}
 
 	/**
-	 * Method that generates onCreate ListActivity method using received entity
-	 * JavaType
+	 * Method that generates onCreate ListActivity method
 	 * 
 	 * @return
 	 */
@@ -220,6 +220,50 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		bodyBuilder.appendFormalLine("e.printStackTrace();");
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
+	}
+
+	/**
+	 * Method that generates onCreateOptionsMenu ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnCreateOptionsMenuMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnCreateOptionsMenuMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onCreateOptionsMenu"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+	
+	/**
+	 * Generates onCreateOptionsMenu ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnCreateOptionsMenuMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		bodyBuilder.appendFormalLine("// Inflate the menu; this adds items to the action bar if it is present.");
+		
+		// getMenuInflater().inflate(R.menu.menu_list, menu);
+		bodyBuilder.appendFormalLine("getMenuInflater().inflate(R.menu.menu_list, menu);");
+		
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
 	}
 
 	@Override
