@@ -1102,6 +1102,43 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	 */
 	private void buildRemoveEntityMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 
+		// Removing all selected entity
+		bodyBuilder.appendFormalLine(
+				String.format("// Removing all selected %s", entity.getSimpleTypeName().toLowerCase()));
+
+		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
+		bodyBuilder.appendFormalLine(
+				String.format("Dao<%s, Integer> %sDao = getHelper().get%sDao();", entity.getSimpleTypeName(),
+						entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+
+		// Integer deleted = entityDao.delete(selectedEntity);
+		bodyBuilder.appendFormalLine(String.format("Integer deleted = %sDao.delete(selected%s);",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// Show message with total deleted items
+		bodyBuilder.appendFormalLine("// Show message with total deleted items");
+
+		// String message = String.format("%s %s deleted", deleted, deleted > 1
+		// ? "entity were" : "entity was");
+		bodyBuilder.appendFormalLine("String message = String.format(\"%s %s deleted\", deleted, deleted > 1 ? \""
+				+ entity.getSimpleTypeName().toLowerCase() + " were\" : \"" + entity.getSimpleTypeName().toLowerCase()
+				+ " was\");");
+
+		// Toast toast = Toast.makeText(getApplicationContext(), message,
+		// Toast.LENGTH_SHORT);
+		bodyBuilder.appendFormalLine(
+				String.format("%s toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);",
+						new JavaType("android.widget.Toast").getNameIncludingTypeParameters(false, importResolver)));
+		
+		// toast.show();
+		bodyBuilder.appendFormalLine("toast.show();");
+		
+		// Close action mode
+		bodyBuilder.appendFormalLine("// Close action mode");
+		
+		// actionMode.finish();
+		bodyBuilder.appendFormalLine("actionMode.finish();");
+
 	}
 
 	@Override
