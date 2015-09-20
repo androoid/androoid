@@ -96,6 +96,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// Adding necessary methods
 		builder.addMethod(getOnCreateMethod());
 		builder.addMethod(getOnCreateOptionsMenuMethod());
+		builder.addMethod(getOnOptionsItemSelectedMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -165,7 +166,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// super.onCreate(savedInstanceState);
 		bodyBuilder.appendFormalLine("super.onCreate(savedInstanceState);");
 
-		// setContentView(R.layout.author_list_activity);
+		// setContentView(R.layout.entity_list_activity);
 		bodyBuilder.appendFormalLine(String.format("setContentView(%s.layout.main_activity);",
 				new JavaType(applicationPackage.getFullyQualifiedPackageName().concat(".R"))
 						.getNameIncludingTypeParameters(false, importResolver),
@@ -243,13 +244,14 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onCreateOptionsMenu"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
+				new JavaSymbolName("onCreateOptionsMenu"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
 		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
 
 		return methodBuilder; // Build and return a MethodMetadata
 		// instance
 	}
-	
+
 	/**
 	 * Generates onCreateOptionsMenu ListActivity method body
 	 * 
@@ -258,12 +260,92 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	private void buildOnCreateOptionsMenuMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		bodyBuilder.appendFormalLine("// Inflate the menu; this adds items to the action bar if it is present.");
-		
+
 		// getMenuInflater().inflate(R.menu.menu_list, menu);
 		bodyBuilder.appendFormalLine("getMenuInflater().inflate(R.menu.menu_list, menu);");
-		
+
 		// return true;
 		bodyBuilder.appendFormalLine("return true;");
+	}
+
+	/**
+	 * Method that generates onOptionsItemSelected ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnOptionsItemSelectedMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.MenuItem")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("item"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnOptionsItemSelectedMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onOptionsItemSelected"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onOptionsItemSelected ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnOptionsItemSelectedMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// switch (item.getItemId()) {
+		bodyBuilder.appendFormalLine("switch (item.getItemId()) {");
+		bodyBuilder.indent();
+
+		// Respond to the action bar's Up/Home button
+		bodyBuilder.appendFormalLine("// Respond to the action bar's Up/Home button");
+
+		// case android.R.id.home:
+		bodyBuilder.appendFormalLine("case android.R.id.home:");
+		bodyBuilder.indent();
+
+		// NavUtils.navigateUpFromSameTask(this);
+		bodyBuilder.appendFormalLine(String.format("%s.navigateUpFromSameTask(this);",
+				new JavaType("android.support.v4.app.NavUtils").getNameIncludingTypeParameters(false, importResolver)));
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+		bodyBuilder.indentRemove();
+
+		// case R.id.action_add:
+		bodyBuilder.appendFormalLine("case R.id.action_add:");
+		bodyBuilder.indent();
+
+		// Intent intent = new Intent(EntityListActivity.this,
+		// EntityFormActivity.class);
+		bodyBuilder.appendFormalLine(String.format("%s intent = new Intent(%sListActivity.this, %sFormActivity.class);",
+				new JavaType("android.content.Intent").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName()));
+
+		// EntityListActivity.this.startActivity(intent);
+		bodyBuilder.appendFormalLine(
+				String.format("%sListActivity.this.startActivity(intent);", entity.getSimpleTypeName()));
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+		bodyBuilder.indentRemove();
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// return super.onOptionsItemSelected(item);
+		bodyBuilder.appendFormalLine("return super.onOptionsItemSelected(item);");
+
 	}
 
 	@Override
