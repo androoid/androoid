@@ -101,6 +101,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnCreateOptionsMenuMethod());
 		builder.addMethod(getOnOptionsItemSelectedMethod());
 		builder.addMethod(getOnItemCheckedStateChangedMethod());
+		builder.addMethod(getOnCreateActionModeMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -492,39 +493,118 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
 
-		// If there are more than one selected item, is not possible edit or show elements
-		bodyBuilder.appendFormalLine("// If there are more than one selected item, is not possible edit or show elements");
-		
+		// If there are more than one selected item, is not possible edit or
+		// show elements
+		bodyBuilder
+				.appendFormalLine("// If there are more than one selected item, is not possible edit or show elements");
+
 		// if (contextualMenu != null){
 		bodyBuilder.appendFormalLine("if (contextualMenu != null) {");
 		bodyBuilder.indent();
-		
+
 		// MenuItem showMenuItem = contextualMenu.getItem(0);
 		bodyBuilder.appendFormalLine("MenuItem showMenuItem = contextualMenu.getItem(0);");
-		
+
 		// MenuItem editMenuItem = contextualMenu.getItem(1);
 		bodyBuilder.appendFormalLine("MenuItem editMenuItem = contextualMenu.getItem(1);");
-		
+
 		// boolean toShow = true;
 		bodyBuilder.appendFormalLine("boolean toShow = true;");
-		
+
 		// if (checkedItems > 1) {
 		bodyBuilder.appendFormalLine("if (checkedItems > 1) {");
 		bodyBuilder.indent();
-		
+
 		// toShow = false;
 		bodyBuilder.appendFormalLine("toShow = false;");
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
-		
-		// showMenuItem.setVisible(toShow); 
+
+		// showMenuItem.setVisible(toShow);
 		bodyBuilder.appendFormalLine("showMenuItem.setVisible(toShow);");
-		
+
 		// editMenuItem.setVisible(toShow);
 		bodyBuilder.appendFormalLine("editMenuItem.setVisible(toShow);");
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
-		
+
+	}
+
+	/**
+	 * Method that generates onCreateActionMode ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnCreateActionModeMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnCreateActionModeMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onCreateActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when action mode is first created. The menu supplied will be used to \n"
+						+ "generate action buttons for the action mode. \n \n"
+						+ "@param mode ActionMode being created. \n"
+						+ "@param menu Menu used to populate action buttons. \n \n"
+						+ "@return true if the action mode should be created, false if entering this \n"
+						+ "mode should be aborted. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onCreateActionMode ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnCreateActionModeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// Setting title
+		bodyBuilder.appendFormalLine("// Setting title");
+
+		// mode.setTitle("Selected Entitiy");
+		bodyBuilder.appendFormalLine(String.format("mode.setTitle(\"Selected %s\");", entity.getSimpleTypeName()));
+
+		// Inflate the menu for the CAB
+		bodyBuilder.appendFormalLine("// Inflate the menu for the CAB");
+
+		// MenuInflater inflater = mode.getMenuInflater();
+		bodyBuilder.appendFormalLine(String.format("%s inflater = mode.getMenuInflater();",
+				new JavaType("android.view.MenuInflater").getNameIncludingTypeParameters(false, importResolver)));
+
+		// inflater.inflate(R.menu.contextual_menu, menu);
+		bodyBuilder.appendFormalLine("inflater.inflate(R.menu.contextual_menu, menu);");
+
+		// contextualMenu = menu;
+		bodyBuilder.appendFormalLine("contextualMenu = menu;");
+
+		// actionMode = mode;
+		bodyBuilder.appendFormalLine("actionMode = mode;");
+
+		// return true
+		bodyBuilder.appendFormalLine("return true;");
+
 	}
 
 	@Override
