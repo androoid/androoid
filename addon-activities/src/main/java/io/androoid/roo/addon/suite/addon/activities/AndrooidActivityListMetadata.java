@@ -13,6 +13,9 @@ import org.springframework.roo.classpath.details.FieldMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.details.comments.CommentStructure;
+import org.springframework.roo.classpath.details.comments.CommentStructure.CommentLocation;
+import org.springframework.roo.classpath.details.comments.JavadocComment;
 import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMetadataItem;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
@@ -97,6 +100,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnCreateMethod());
 		builder.addMethod(getOnCreateOptionsMenuMethod());
 		builder.addMethod(getOnOptionsItemSelectedMethod());
+		builder.addMethod(getOnItemCheckedStateChangedMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -346,6 +350,181 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// return super.onOptionsItemSelected(item);
 		bodyBuilder.appendFormalLine("return super.onOptionsItemSelected(item);");
 
+	}
+
+	/**
+	 * Method that generates onItemCheckedStateChanged ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnItemCheckedStateChangedMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.LONG_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.BOOLEAN_PRIMITIVE));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("position"));
+		parameterNames.add(new JavaSymbolName("id"));
+		parameterNames.add(new JavaSymbolName("checked"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnItemCheckedStateChangedMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onItemCheckedStateChanged"), JavaType.VOID_PRIMITIVE, parameterTypes,
+				parameterNames, bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when an item is checked or unchecked during selection mode. \n \n"
+						+ "@param mode     The {@link android.view.ActionMode} providing the selection mode. \n"
+						+ "@param position Adapter position of the item that was checked or unchecked. \n"
+						+ "@param id       Adapter ID of the item that was checked or unchecked \n"
+						+ "@param checked  <code>true</code> if the item is now checked, <code>false</code> \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onItemCheckedStateChanged ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnItemCheckedStateChangedMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// Getting current item
+		bodyBuilder.appendFormalLine("// Getting current item");
+
+		// Entity entity = (Entity) getListView().getItemAtPosition(position);
+		bodyBuilder.appendFormalLine(String.format("%s %s = (%s) getListView().getItemAtPosition(position);",
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// View child = getListView().getChildAt(position);
+		bodyBuilder.appendFormalLine(String.format("%s child = getListView().getChildAt(position);",
+				new JavaType("android.view.View").getNameIncludingTypeParameters(false, importResolver)));
+
+		// Checking if current item was checked before
+		bodyBuilder.appendFormalLine("// Checking if current item was checked before");
+
+		// if (selectedEntity.indexOf(entity) != -1) {
+		bodyBuilder.appendFormalLine(String.format("if (selected%s.indexOf(%s) != -1) {", entity.getSimpleTypeName(),
+				entity.getSimpleTypeName().toLowerCase()));
+		bodyBuilder.indent();
+
+		// Removing element from selected Entity
+		bodyBuilder.appendFormalLine(String.format("// Removing element from selected %s", entity.getSimpleTypeName()));
+
+		// selectedEntity.remove(selectedEntity.indexOf(entity));
+		bodyBuilder.appendFormalLine(String.format("selected%s.remove(selected%s.indexOf(%s));",
+				entity.getSimpleTypeName(), entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase()));
+
+		// Removing background
+		bodyBuilder.appendFormalLine("// Removing background");
+
+		// if (child != null) {
+		bodyBuilder.appendFormalLine("if (child != null) {");
+		bodyBuilder.indent();
+
+		// child.setSelected(false);
+		bodyBuilder.appendFormalLine("child.setSelected(false);");
+
+		// child.setBackgroundColor(Color.WHITE);
+		bodyBuilder.appendFormalLine(String.format("child.setBackgroundColor(%s.WHITE);",
+				new JavaType("android.graphics.Color").getNameIncludingTypeParameters(false, importResolver)));
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+		bodyBuilder.indentRemove();
+
+		// } else {
+		bodyBuilder.appendFormalLine("} else {");
+		bodyBuilder.indent();
+
+		// Adding element to selected Entity
+		bodyBuilder.appendFormalLine(String.format("// Adding element to selected %s", entity.getSimpleTypeName()));
+
+		// selectedEntity.add(entity);
+		bodyBuilder.appendFormalLine(String.format("selected%s.add(%s);", entity.getSimpleTypeName(),
+				entity.getSimpleTypeName().toLowerCase()));
+
+		// Changing background
+		bodyBuilder.appendFormalLine("// Changing background");
+
+		// if (child != null) {
+		bodyBuilder.appendFormalLine("if (child != null) {");
+		bodyBuilder.indent();
+
+		// child.setSelected(true);
+		bodyBuilder.appendFormalLine("child.setSelected(true);");
+
+		// child.setBackgroundColor(Color.parseColor("#6DCAEC"));
+		bodyBuilder.appendFormalLine("child.setBackgroundColor(Color.parseColor(\"#6DCAEC\"));");
+
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// int checkedItems = getListView().getCheckedItemCount();
+		bodyBuilder.appendFormalLine("int checkedItems = getListView().getCheckedItemCount();");
+
+		// if(checkedItems>0)
+		bodyBuilder.appendFormalLine("if(checkedItems>0){");
+		bodyBuilder.indent();
+
+		// mode.setSubtitle(String.format("%s entity%s selected", checkedItems,
+		// checkedItems > 1 ? "s" : ""));
+		bodyBuilder.appendFormalLine("mode.setSubtitle(String.format(\"%s " + entity.getSimpleTypeName().toLowerCase()
+				+ "%s selected\", checkedItems, checkedItems > 1 ? \"s\" : \"\"));");
+
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// If there are more than one selected item, is not possible edit or show elements
+		bodyBuilder.appendFormalLine("// If there are more than one selected item, is not possible edit or show elements");
+		
+		// if (contextualMenu != null){
+		bodyBuilder.appendFormalLine("if (contextualMenu != null) {");
+		bodyBuilder.indent();
+		
+		// MenuItem showMenuItem = contextualMenu.getItem(0);
+		bodyBuilder.appendFormalLine("MenuItem showMenuItem = contextualMenu.getItem(0);");
+		
+		// MenuItem editMenuItem = contextualMenu.getItem(1);
+		bodyBuilder.appendFormalLine("MenuItem editMenuItem = contextualMenu.getItem(1);");
+		
+		// boolean toShow = true;
+		bodyBuilder.appendFormalLine("boolean toShow = true;");
+		
+		// if (checkedItems > 1) {
+		bodyBuilder.appendFormalLine("if (checkedItems > 1) {");
+		bodyBuilder.indent();
+		
+		// toShow = false;
+		bodyBuilder.appendFormalLine("toShow = false;");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+		
+		// showMenuItem.setVisible(toShow); 
+		bodyBuilder.appendFormalLine("showMenuItem.setVisible(toShow);");
+		
+		// editMenuItem.setVisible(toShow);
+		bodyBuilder.appendFormalLine("editMenuItem.setVisible(toShow);");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+		
 	}
 
 	@Override
