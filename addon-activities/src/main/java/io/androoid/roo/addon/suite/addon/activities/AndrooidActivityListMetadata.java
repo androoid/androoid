@@ -103,6 +103,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnItemCheckedStateChangedMethod());
 		builder.addMethod(getOnCreateActionModeMethod());
 		builder.addMethod(getOnPrepareActionModeMethod());
+		builder.addMethod(getOnActionItemClickedMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -639,7 +640,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		CommentStructure commentStructure = new CommentStructure();
 		JavadocComment comment = new JavadocComment(
 				"Called to refresh an action mode's action menu whenever it is invalidated. \n \n"
-						+ "@param mode ActionMode being created. \n"
+						+ "@param mode ActionMode being prepared. \n"
 						+ "@param menu Menu used to populate action buttons. \n \n"
 						+ "@return true if the menu or action mode was updated, false otherwise. \n");
 		commentStructure.addComment(comment, CommentLocation.BEGINNING);
@@ -657,6 +658,154 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	private void buildOnPrepareActionModeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 		// return false;
 		bodyBuilder.appendFormalLine("return false;");
+	}
+
+	/**
+	 * Method that generates onActionItemClicked ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnActionItemClickedMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.MenuItem")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("item"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildonActionItemClickedMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onActionItemClicked"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment("Called to report a user click on an action button. \n \n"
+				+ "@param mode The current ActionMode \n" + "@param item The item that was clicked \n \n"
+				+ "@return true if this callback handled the event, false if the standard MenuItem \n"
+				+ "invocation should continue. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onActionItemClicked ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildonActionItemClickedMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// Respond to clicks on the actions in the CAB
+		bodyBuilder.appendFormalLine("// Respond to clicks on the actions in the CAB");
+
+		// Intent intent = new Intent(EntityListActivity.this,
+		// EntityFormActivity.class);
+		bodyBuilder.appendFormalLine(String.format("%s intent = new Intent(%sListActivity.this, %sFormActivity.class);",
+				new JavaType("android.content.Intent").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName()));
+
+		// Bundle bundle = new Bundle();
+		bodyBuilder.appendFormalLine(String.format("%s bundle = new Bundle();",
+				new JavaType("android.os.Bundle").getNameIncludingTypeParameters(false, importResolver)));
+
+		// switch (item.getItemId()) {
+		bodyBuilder.appendFormalLine("switch (item.getItemId()) {");
+		bodyBuilder.indent();
+
+		// case R.id.item_show:
+		bodyBuilder.appendFormalLine("case R.id.item_show:");
+		bodyBuilder.indent();
+
+		// Show selected entity
+		bodyBuilder.appendFormalLine(String.format("// Show selected %s", entity.getSimpleTypeName().toLowerCase()));
+
+		// bundle.putInt("entityId", selectedEntity.get(0).getId());
+		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", selected%s.get(0).getId());",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// bundle.putString("mode", "show");
+		bodyBuilder.appendFormalLine("bundle.putString(\"mode\", \"show\");");
+
+		// intent.putExtras(bundle);
+		bodyBuilder.appendFormalLine("intent.putExtras(bundle);");
+
+		// EntityListActivity.this.startActivity(intent);
+		bodyBuilder.appendFormalLine(
+				String.format("%sListActivity.this.startActivity(intent);", entity.getSimpleTypeName()));
+
+		// break;
+		bodyBuilder.appendFormalLine("break;");
+		bodyBuilder.indentRemove();
+
+		// case R.id.item_edit:
+		bodyBuilder.appendFormalLine("case R.id.item_edit:");
+		bodyBuilder.indent();
+
+		// Edit selected entity
+		bodyBuilder.appendFormalLine(String.format("// Edit selected %s", entity.getSimpleTypeName().toLowerCase()));
+
+		// bundle.putInt("entityId", selectedEntity.get(0).getId());
+		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", selected%s.get(0).getId());",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// intent.putExtras(bundle);
+		bodyBuilder.appendFormalLine("intent.putExtras(bundle);");
+
+		// EntityListActivity.this.startActivity(intent);
+		bodyBuilder.appendFormalLine(
+				String.format("%sListActivity.this.startActivity(intent);", entity.getSimpleTypeName()));
+
+		// break;
+		bodyBuilder.appendFormalLine("break;");
+		bodyBuilder.indentRemove();
+
+		// case R.id.item_delete:
+		bodyBuilder.appendFormalLine("case R.id.item_delete:");
+		bodyBuilder.indent();
+
+		// Remove all selected entitiy
+		bodyBuilder
+				.appendFormalLine(String.format("// Remove all selected %s", entity.getSimpleTypeName().toLowerCase()));
+
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// removeEntity();
+		bodyBuilder.appendFormalLine(String.format("remove%s();", entity.getSimpleTypeName()));
+		bodyBuilder.indentRemove();
+
+		// } catch (SQLException e) {
+		bodyBuilder.appendFormalLine(String.format("} catch (%s e) {",
+				new JavaType("java.sql.SQLException").getNameIncludingTypeParameters(false, importResolver)));
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// break;
+		bodyBuilder.appendFormalLine("break;");
+		bodyBuilder.indentRemove();
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+
 	}
 
 	@Override
