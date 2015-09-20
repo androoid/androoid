@@ -21,9 +21,6 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
-import org.springframework.roo.classpath.details.DefaultImportMetadata;
-import org.springframework.roo.classpath.details.ImportMetadata;
-import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.DataType;
@@ -42,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidFormActivity;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidListActivity;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidMainActivity;
 import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
@@ -136,7 +134,7 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		addListActivity(entity);
 
 		// Generate new Form activity
-		// addFormActivity(entity);
+		addFormActivity(entity);
 
 		// Add new activity button to main view
 		// addActivityToMainView(entity);
@@ -185,6 +183,48 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		// and AdapterView.OnItemClickListener
 		cidBuilder.addImplementsType(new JavaType("android.widget.AbsListView.MultiChoiceModeListener").getBaseType());
 		cidBuilder.addImplementsType(new JavaType("android.widget.AdapterView.OnItemClickListener").getBaseType());
+
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
+
+	/**
+	 * This method creates new AndrooidFormActivity related with an specified
+	 * entity that will allow users to manage data about the specified entity.
+	 * 
+	 * @param entity
+	 *            JavaType that will be used to generate the related activity
+	 */
+	private void addFormActivity(JavaType entity) {
+
+		// Creates new activity JavaType
+		String entityName = entity.getSimpleTypeName();
+		String formActivityName = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("FormActivity");
+		JavaType formActivity = new JavaType(formActivityName);
+
+		int modifier = Modifier.PUBLIC;
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(formActivity,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", formActivity);
+
+		// Prepare class builder
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, modifier, formActivity, PhysicalTypeCategory.CLASS);
+
+		// Including @AndrooidFormActivity annotation
+		AnnotationMetadataBuilder formActivityAnnotation = new AnnotationMetadataBuilder(
+				new JavaType(AndrooidFormActivity.class));
+		formActivityAnnotation.addClassAttribute("entity", entity);
+		cidBuilder.addAnnotation(formActivityAnnotation);
+
+		// AndrooidActivityList extends OrmLiteBaseListActivity<DatabaseHelper>
+		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseActivity", 0,
+				DataType.TYPE, null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
+						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
+		cidBuilder.addExtendsTypes(extendsType);
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
