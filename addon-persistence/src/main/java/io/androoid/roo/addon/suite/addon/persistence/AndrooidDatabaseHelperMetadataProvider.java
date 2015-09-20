@@ -38,12 +38,11 @@ public class AndrooidDatabaseHelperMetadataProvider extends AbstractItdMetadataP
 
 	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidDatabaseHelperMetadataProvider.class);
 
-	public static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(
-			"io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabaseHelper");
+	public static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(AndrooidDatabaseHelper.class);
 
 	@Reference
 	ProjectOperations projectOperations;
-	
+
 	@Reference
 	TypeLocationService typeLocationService;
 
@@ -88,7 +87,7 @@ public class AndrooidDatabaseHelperMetadataProvider extends AbstractItdMetadataP
 
 		// Getting project entities
 		List<JavaType> entitiesToInclude = new ArrayList<JavaType>();
-		
+
 		final JavaType databaseHelper = AndrooidDatabaseHelperMetadata.getJavaType(metadataIdentificationString);
 
 		ClassOrInterfaceTypeDetails databaseHelperDetails = typeLocationService.getTypeDetails(databaseHelper);
