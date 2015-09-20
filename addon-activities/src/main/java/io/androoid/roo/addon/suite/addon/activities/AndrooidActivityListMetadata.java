@@ -96,7 +96,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// Adding fields
 		addListActivityFields();
 
-		// Adding necessary methods
+		// Adding @Override necessary methods
 		builder.addMethod(getOnCreateMethod());
 		builder.addMethod(getOnCreateOptionsMenuMethod());
 		builder.addMethod(getOnOptionsItemSelectedMethod());
@@ -106,6 +106,10 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getOnActionItemClickedMethod());
 		builder.addMethod(getOnDestroyActionModeMethod());
 		builder.addMethod(getOnItemClickMethod());
+
+		// Add methods to manage entity data
+		builder.addMethod(getFillEntityListMethod());
+		builder.addMethod(getRemoveEntityMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -854,8 +858,9 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	 */
 	private void buildOnDestroyActionModeMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
 
-		// Cleaning selected authors
-		bodyBuilder.appendFormalLine("// Cleaning selected authors");
+		// Cleaning selected entity
+		bodyBuilder
+				.appendFormalLine(String.format("// Cleaning selected %s", entity.getSimpleTypeName().toLowerCase()));
 
 		// selectedEntity.clear();
 		bodyBuilder.appendFormalLine(String.format("selected%s.clear();", entity.getSimpleTypeName()));
@@ -888,14 +893,13 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	private MethodMetadataBuilder getOnItemClickMethod() {
 		// Define method parameter types
 		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
-		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
-				new JavaType("android.widget.AdapterView", 0, DataType.TYPE, null, Arrays.asList(new JavaType("?")))));
-		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
-				new JavaType("android.view.View")));
-		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
-				JavaType.INT_PRIMITIVE));
-		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(
-				JavaType.LONG_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.widget.AdapterView", 0,
+				DataType.TYPE, null, Arrays.asList(new JavaType(JavaType.OBJECT.getFullyQualifiedTypeName(), 0,
+						DataType.TYPE, JavaType.WILDCARD_NEITHER, null)))));
+
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.View")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.LONG_PRIMITIVE));
 
 		// Define method parameter names
 		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
@@ -918,8 +922,7 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
 		JavadocComment comment = new JavadocComment(
-				"Callback method to be invoked when an item in this AdapterView has \n"
-						+ "been clicked. \n \n"
+				"Callback method to be invoked when an item in this AdapterView has \n" + "been clicked. \n \n"
 						+ "Implementers can call getItemAtPosition(position) if they need \n"
 						+ "to access the data associated with the selected item. \n \n"
 						+ "@param parent   The AdapterView where the click happened. \n"
@@ -940,7 +943,165 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	 * @param bodyBuilder
 	 */
 	private void buildOnItemClickMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
-		// TODO: Generate onItemClick method body
+
+		// Show selected entity
+		bodyBuilder.appendFormalLine(String.format("// Show selected %s", entity.getSimpleTypeName().toLowerCase()));
+
+		// Intent intent = new Intent(EntityListActivity.this,
+		// EntityFormActivity.class);
+		bodyBuilder.appendFormalLine(String.format("%s intent = new Intent(%sListActivity.this, %sFormActivity.class);",
+				new JavaType("android.content.Intent").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName()));
+
+		// Bundle bundle = new Bundle();
+		bodyBuilder.appendFormalLine(String.format("%s bundle = new Bundle();",
+				new JavaType("android.os.Bundle").getNameIncludingTypeParameters(false, importResolver)));
+
+		// Entity entity = (Entity) getListView().getItemAtPosition(position);
+		bodyBuilder.appendFormalLine(String.format("%s %s = (%s) getListView().getItemAtPosition(position);",
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// bundle.putInt("entityId", selectedEntity.get(0).getId());
+		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", %s.get(0).getId());",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+
+		// bundle.putString("mode", "show");
+		bodyBuilder.appendFormalLine("bundle.putString(\"mode\", \"show\");");
+
+		// intent.putExtras(bundle);
+		bodyBuilder.appendFormalLine("intent.putExtras(bundle);");
+
+		// EntityListActivity.this.startActivity(intent);
+		bodyBuilder.appendFormalLine(
+				String.format("%sListActivity.this.startActivity(intent);", entity.getSimpleTypeName()));
+
+	}
+
+	/**
+	 * Method that generates fillEntityList ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getFillEntityListMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildFillEntityListMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName(String.format("fill%sList", entity.getSimpleTypeName())), JavaType.VOID_PRIMITIVE,
+				parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException"));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(String.format(
+				"Method that fills %s list with %s getted from Database. \n \n" + "@throws SQLException \n",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates fillEntityList ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildFillEntityListMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
+		bodyBuilder.appendFormalLine(String.format("%s<%s, Integer> %sDao = getHelper().get%sDao();",
+				new JavaType("com.j256.ormlite.dao.Dao").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// List<Entity> entity = entityDao.queryForAll();
+		bodyBuilder.appendFormalLine(String.format("List<%s> %s = %sDao.queryForAll();", entity.getSimpleTypeName(),
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+
+		// Creating entity ArrayList
+		bodyBuilder.appendFormalLine("// Creating entity ArrayList");
+
+		// entityList = new ArrayList<Entity>();
+		bodyBuilder.appendFormalLine(String.format("%sList = new ArrayList<%s>();",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// for (Entity item : entity) {
+		bodyBuilder
+				.appendFormalLine(String.format("for (Entity item : %s) {", entity.getSimpleTypeName().toLowerCase()));
+		bodyBuilder.indent();
+
+		// entityList.add(entity);
+		bodyBuilder.appendFormalLine(
+				String.format("%sList.add(%s);", entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// Creating array adapter
+		bodyBuilder.appendFormalLine("// Creating array adapter");
+
+		// adapter=new
+		// ArrayAdapter(this,android.R.layout.simple_list_item_1,entityList);
+		bodyBuilder.appendFormalLine(
+				String.format("adapter=new ArrayAdapter(this, android.R.layout.simple_list_item_1, %sList);",
+						entity.getSimpleTypeName().toLowerCase()));
+
+		// getListView().setAdapter(adapter);
+		bodyBuilder.appendFormalLine("getListView().setAdapter(adapter);");
+
+	}
+
+	/**
+	 * Method that generates removeEntity ListActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getRemoveEntityMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildRemoveEntityMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName(String.format("remove%s", entity.getSimpleTypeName())), JavaType.VOID_PRIMITIVE,
+				parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addThrowsType(new JavaType("java.sql.SQLException"));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				String.format("Method that removes all selected %s \n \n" + "@throws SQLException \n",
+						entity.getSimpleTypeName().toLowerCase()));
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates removeEntity ListActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildRemoveEntityMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
 	}
 
 	@Override
