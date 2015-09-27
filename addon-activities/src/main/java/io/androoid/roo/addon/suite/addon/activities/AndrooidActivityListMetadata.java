@@ -45,6 +45,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	private final JavaPackage applicationPackage;
 	private final JavaType listEntityJavaType;
 	private final JavaType arrayListEntityJavaType;
+	private final String getIdFieldMethod;
+	private final JavaType entityIdFieldType;
 
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
@@ -78,10 +80,17 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 	 * @param projectPackage
 	 * @param entity
 	 *            JavaType entity that relates activity with a entity model
+	 * @param entityIdFieldName
+	 *            String that contains the identifier field name of current
+	 *            entity
+	 * @param entityIdFieldType
+	 *            JavaType that contains the type of the identifier field of the
+	 *            current entity
 	 * 
 	 */
 	public AndrooidActivityListMetadata(final String identifier, final JavaType aspectName,
-			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage, JavaType entity) {
+			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage, JavaType entity,
+			String entityIdFieldName, JavaType entityIdFieldType) {
 		super(identifier, aspectName, governorPhysicalTypeMetadata);
 		Validate.isTrue(isValid(identifier), "Metadata identification string '%s' does not appear to be a valid",
 				identifier);
@@ -92,6 +101,9 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		this.listEntityJavaType = new JavaType("java.util.List", 0, DataType.TYPE, null, Arrays.asList(entity));
 		this.arrayListEntityJavaType = new JavaType("java.util.ArrayList", 0, DataType.TYPE, null,
 				Arrays.asList(entity));
+		this.getIdFieldMethod = "get"
+				.concat(Character.toUpperCase(entityIdFieldName.charAt(0)) + entityIdFieldName.substring(1));
+		this.entityIdFieldType = entityIdFieldType;
 
 		// Adding fields
 		addListActivityFields();
@@ -388,9 +400,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onItemCheckedStateChanged"), JavaType.VOID_PRIMITIVE, parameterTypes,
-				parameterNames, bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onCheckedStateChanged%s", entity.getSimpleTypeName())),
+				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -561,9 +572,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onCreateActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onCreateActionMode%s", entity.getSimpleTypeName())),
+				JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -638,9 +648,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onPrepareActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onPrepareActionMode%s", entity.getSimpleTypeName())),
+				JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -689,9 +698,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onActionItemClicked"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onActionItemClicked%s", entity.getSimpleTypeName())),
+				JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -737,9 +745,10 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// Show selected entity
 		bodyBuilder.appendFormalLine(String.format("// Show selected %s", entity.getSimpleTypeName().toLowerCase()));
 
-		// bundle.putInt("entityId", selectedEntity.get(0).getId());
-		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", selected%s.get(0).getId());",
-				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+		// bundle.putInt("entityId", selectedEntity.get(0).getEntityIdField());
+		bodyBuilder.appendFormalLine(
+				String.format("bundle.put%s(\"%sId\", selected%s.get(0).%s());", entityIdFieldType.getSimpleTypeName(),
+						entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName(), getIdFieldMethod));
 
 		// bundle.putString("mode", "show");
 		bodyBuilder.appendFormalLine("bundle.putString(\"mode\", \"show\");");
@@ -762,9 +771,10 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		// Edit selected entity
 		bodyBuilder.appendFormalLine(String.format("// Edit selected %s", entity.getSimpleTypeName().toLowerCase()));
 
-		// bundle.putInt("entityId", selectedEntity.get(0).getId());
-		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", selected%s.get(0).getId());",
-				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+		// bundle.putInt("entityId", selectedEntity.get(0).getIdField());
+		bodyBuilder.appendFormalLine(
+				String.format("bundle.put%s(\"%sId\", selected%s.get(0).%s());", entityIdFieldType.getSimpleTypeName(),
+						entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName(), getIdFieldMethod));
 
 		// intent.putExtras(bundle);
 		bodyBuilder.appendFormalLine("intent.putExtras(bundle);");
@@ -835,9 +845,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onDestroyActionMode"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onDestroyActionMode%s", entity.getSimpleTypeName())),
+				JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -915,9 +924,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
-				new JavaSymbolName("onItemClick"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
-				bodyBuilder);
-		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+				new JavaSymbolName(String.format("onItemClick%s", entity.getSimpleTypeName())), JavaType.VOID_PRIMITIVE,
+				parameterTypes, parameterNames, bodyBuilder);
 
 		// Including comments
 		CommentStructure commentStructure = new CommentStructure();
@@ -961,9 +969,10 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		bodyBuilder.appendFormalLine(String.format("%s %s = (%s) getListView().getItemAtPosition(position);",
 				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
 
-		// bundle.putInt("entityId", selectedEntity.get(0).getId());
-		bodyBuilder.appendFormalLine(String.format("bundle.putInt(\"%sId\", %s.get(0).getId());",
-				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+		// bundle.putInt("entityId", selectedEntity.get(0).getIdField());
+		bodyBuilder.appendFormalLine(String.format("bundle.put%s(\"%sId\", %s.%s());",
+				entityIdFieldType.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(),
+				entity.getSimpleTypeName().toLowerCase(), getIdFieldMethod));
 
 		// bundle.putString("mode", "show");
 		bodyBuilder.appendFormalLine("bundle.putString(\"mode\", \"show\");");
@@ -1036,13 +1045,12 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
 
 		// for (Entity item : entity) {
-		bodyBuilder
-				.appendFormalLine(String.format("for (Entity item : %s) {", entity.getSimpleTypeName().toLowerCase()));
+		bodyBuilder.appendFormalLine(String.format("for (%s item : %s) {", entity.getSimpleTypeName(),
+				entity.getSimpleTypeName().toLowerCase()));
 		bodyBuilder.indent();
 
 		// entityList.add(entity);
-		bodyBuilder.appendFormalLine(
-				String.format("%sList.add(%s);", entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+		bodyBuilder.appendFormalLine(String.format("%sList.add(item);", entity.getSimpleTypeName().toLowerCase()));
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
 
@@ -1107,9 +1115,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 				String.format("// Removing all selected %s", entity.getSimpleTypeName().toLowerCase()));
 
 		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
-		bodyBuilder.appendFormalLine(
-				String.format("Dao<%s, Integer> %sDao = getHelper().get%sDao();", entity.getSimpleTypeName(),
-						entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+		bodyBuilder.appendFormalLine(String.format("Dao<%s, Integer> %sDao = getHelper().get%sDao();",
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
 
 		// Integer deleted = entityDao.delete(selectedEntity);
 		bodyBuilder.appendFormalLine(String.format("Integer deleted = %sDao.delete(selected%s);",
@@ -1129,13 +1136,13 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
 		bodyBuilder.appendFormalLine(
 				String.format("%s toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);",
 						new JavaType("android.widget.Toast").getNameIncludingTypeParameters(false, importResolver)));
-		
+
 		// toast.show();
 		bodyBuilder.appendFormalLine("toast.show();");
-		
+
 		// Close action mode
 		bodyBuilder.appendFormalLine("// Close action mode");
-		
+
 		// actionMode.finish();
 		bodyBuilder.appendFormalLine("actionMode.finish();");
 

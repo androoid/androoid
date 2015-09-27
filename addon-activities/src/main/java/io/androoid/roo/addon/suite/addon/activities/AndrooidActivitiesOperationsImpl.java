@@ -21,10 +21,17 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.MethodMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.details.comments.CommentStructure;
+import org.springframework.roo.classpath.details.comments.CommentStructure.CommentLocation;
+import org.springframework.roo.classpath.details.comments.JavadocComment;
+import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.JavaPackage;
+import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
@@ -184,7 +191,310 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		cidBuilder.addImplementsType(new JavaType("android.widget.AbsListView.MultiChoiceModeListener").getBaseType());
 		cidBuilder.addImplementsType(new JavaType("android.widget.AdapterView.OnItemClickListener").getBaseType());
 
+		// Add necessary @Override methods that will invoke .aj methods that
+		// will implements necessary code
+		cidBuilder.addMethod(getOnItemCheckedStateChangedMethod(declaredByMetadataId, entity));
+		cidBuilder.addMethod(getOnCreateActionModeMethod(declaredByMetadataId, entity));
+		cidBuilder.addMethod(getOnPrepareActionModeMethod(declaredByMetadataId, entity));
+		cidBuilder.addMethod(getOnActionItemClickedMethod(declaredByMetadataId, entity));
+		cidBuilder.addMethod(getOnDestroyActionModeMethod(declaredByMetadataId, entity));
+		cidBuilder.addMethod(getOnItemClickMethod(declaredByMetadataId, entity));
+
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
+
+	/**
+	 * Method that generates onItemCheckedStateChanged ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnItemCheckedStateChangedMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.LONG_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.BOOLEAN_PRIMITIVE));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("position"));
+		parameterNames.add(new JavaSymbolName("id"));
+		parameterNames.add(new JavaSymbolName("checked"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(String.format("onCheckedStateChanged%s(mode, position, id, checked);",
+				entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onItemCheckedStateChanged"), JavaType.VOID_PRIMITIVE, parameterTypes,
+				parameterNames, bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when an item is checked or unchecked during selection mode. \n \n"
+						+ "@param mode     The {@link android.view.ActionMode} providing the selection mode. \n"
+						+ "@param position Adapter position of the item that was checked or unchecked. \n"
+						+ "@param id       Adapter ID of the item that was checked or unchecked \n"
+						+ "@param checked  <code>true</code> if the item is now checked, <code>false</code> \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates onCreateActionMode ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnCreateActionModeMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(
+				String.format("return onCreateActionMode%s(mode, menu);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onCreateActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when action mode is first created. The menu supplied will be used to \n"
+						+ "generate action buttons for the action mode. \n \n"
+						+ "@param mode ActionMode being created. \n"
+						+ "@param menu Menu used to populate action buttons. \n \n"
+						+ "@return true if the action mode should be created, false if entering this \n"
+						+ "mode should be aborted. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates onPrepareActionMode ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnPrepareActionModeMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(
+				String.format("return onPrepareActionMode%s(mode, menu);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onPrepareActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called to refresh an action mode's action menu whenever it is invalidated. \n \n"
+						+ "@param mode ActionMode being prepared. \n"
+						+ "@param menu Menu used to populate action buttons. \n \n"
+						+ "@return true if the menu or action mode was updated, false otherwise. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates onActionItemClicked ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnActionItemClickedMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.MenuItem")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("item"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(
+				String.format("return onActionItemClicked%s(mode, item);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onActionItemClicked"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment("Called to report a user click on an action button. \n \n"
+				+ "@param mode The current ActionMode \n" + "@param item The item that was clicked \n \n"
+				+ "@return true if this callback handled the event, false if the standard MenuItem \n"
+				+ "invocation should continue. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates onDestroyActionMode ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnDestroyActionModeMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(String.format("onDestroyActionMode%s(mode);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onDestroyActionMode"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Called when an action mode is about to be exited and destroyed. \n \n"
+						+ "@param mode The current ActionMode being destroyed. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates onItemClick ListActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnItemClickMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.widget.AdapterView", 0,
+				DataType.TYPE, null, Arrays.asList(new JavaType(JavaType.OBJECT.getFullyQualifiedTypeName(), 0,
+						DataType.TYPE, JavaType.WILDCARD_NEITHER, null)))));
+
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.View")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.LONG_PRIMITIVE));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("parent"));
+		parameterNames.add(new JavaSymbolName("view"));
+		parameterNames.add(new JavaSymbolName("position"));
+		parameterNames.add(new JavaSymbolName("id"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(
+				String.format("onItemClick%s(parent, view, position, id);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onItemClick"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Callback method to be invoked when an item in this AdapterView has \n" + "been clicked. \n \n"
+						+ "Implementers can call getItemAtPosition(position) if they need \n"
+						+ "to access the data associated with the selected item. \n \n"
+						+ "@param parent   The AdapterView where the click happened. \n"
+						+ "@param view     The view within the AdapterView that was clicked (this \n"
+						+ "                will be a view provided by the adapter) \n"
+						+ "@param position The position of the view in the adapter. \n"
+						+ "@param id       The row id of the item that was clicked. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
 	}
 
 	/**
@@ -221,8 +531,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		cidBuilder.addAnnotation(formActivityAnnotation);
 
 		// AndrooidActivityList extends OrmLiteBaseListActivity<DatabaseHelper>
-		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseActivity", 0,
-				DataType.TYPE, null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
+		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseActivity", 0, DataType.TYPE,
+				null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
 						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
 		cidBuilder.addExtendsTypes(extendsType);
 

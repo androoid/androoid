@@ -2,6 +2,7 @@ package io.androoid.roo.addon.suite.addon.activities;
 
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -21,6 +22,7 @@ import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.support.logging.HandlerUtils;
 
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidListActivity;
+import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
 
 /**
  * Provides {@link AndrooidActivityListMetadata}.
@@ -34,11 +36,12 @@ public class AndrooidActivityListMetadataProvider extends AbstractItdMetadataPro
 
 	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidActivityListMetadataProvider.class);
 
-	public static final JavaType ANDROOID_LIST_ACTIVITY = new JavaType(AndrooidListActivity.class);
+	public static final JavaType ANDROOID_LIST_ACTIVITY_ANNOTATION = new JavaType(AndrooidListActivity.class);
+	public static final JavaType ANDROOID_ENTITY_ANNOTATION = new JavaType(AndrooidEntity.class);
 
 	@Reference
 	ProjectOperations projectOperations;
-	
+
 	@Reference
 	TypeLocationService typeLocationService;
 
@@ -47,7 +50,7 @@ public class AndrooidActivityListMetadataProvider extends AbstractItdMetadataPro
 		getMetadataDependencyRegistry().addNotificationListener(this);
 		getMetadataDependencyRegistry().registerDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
 				getProvidesType());
-		addMetadataTrigger(ANDROOID_LIST_ACTIVITY);
+		addMetadataTrigger(ANDROOID_LIST_ACTIVITY_ANNOTATION);
 	}
 
 	@Override
@@ -59,7 +62,7 @@ public class AndrooidActivityListMetadataProvider extends AbstractItdMetadataPro
 		getMetadataDependencyRegistry().removeNotificationListener(this);
 		getMetadataDependencyRegistry().deregisterDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
 				getProvidesType());
-		removeMetadataTrigger(ANDROOID_LIST_ACTIVITY);
+		removeMetadataTrigger(ANDROOID_LIST_ACTIVITY_ANNOTATION);
 	}
 
 	@Override
@@ -85,13 +88,40 @@ public class AndrooidActivityListMetadataProvider extends AbstractItdMetadataPro
 		final JavaType listActivity = AndrooidActivityListMetadata.getJavaType(metadataIdentificationString);
 
 		ClassOrInterfaceTypeDetails listActivityDetails = typeLocationService.getTypeDetails(listActivity);
-		AnnotationMetadata annotation = listActivityDetails.getAnnotation(ANDROOID_LIST_ACTIVITY);
+		AnnotationMetadata annotation = listActivityDetails.getAnnotation(ANDROOID_LIST_ACTIVITY_ANNOTATION);
 
 		AnnotationAttributeValue<JavaType> entityAttribute = annotation.getAttribute("entity");
 
+		Validate.notNull(entityAttribute, "ERROR: @AndrooidListActivity needs to specify entity attribute.");
 
-		return new AndrooidActivityListMetadata(metadataIdentificationString, aspectName,
-				governorPhysicalTypeMetadata, projectPackage, entityAttribute.getValue());
+		// Getting entity Id field
+		JavaType entity = entityAttribute.getValue();
+
+		Validate.notNull(entity, "ERROR: @AndrooidListActivity needs to specify a valid entity attribute.");
+
+		ClassOrInterfaceTypeDetails entityDetails = typeLocationService.getTypeDetails(entity);
+
+		// Getting @AndrooidEntity annotation and attributes
+		AnnotationMetadata entityAnnotation = entityDetails.getAnnotation(ANDROOID_ENTITY_ANNOTATION);
+
+		Validate.notNull(entityAnnotation, "ERROR: Only entities annotated with @AndrooidEntity are allowed.");
+
+		AnnotationAttributeValue<String> identifierFieldNameAttr = entityAnnotation.getAttribute("identifierField");
+		AnnotationAttributeValue<Class<?>> identifierFieldTypeAttr = entityAnnotation.getAttribute("identifierType");
+
+		String entityIdFieldName = AndrooidEntity.ID_FIELD_DEFAULT;
+		JavaType entityIdFieldType = JavaType.LONG_OBJECT;
+
+		if (identifierFieldNameAttr != null) {
+			entityIdFieldName = identifierFieldNameAttr.getValue();
+		}
+
+		if (identifierFieldTypeAttr != null) {
+			entityIdFieldType = new JavaType(identifierFieldTypeAttr.getValue());
+		}
+
+		return new AndrooidActivityListMetadata(metadataIdentificationString, aspectName, governorPhysicalTypeMetadata,
+				projectPackage, entity, entityIdFieldName, entityIdFieldType);
 	}
 
 	public String getProvidesType() {

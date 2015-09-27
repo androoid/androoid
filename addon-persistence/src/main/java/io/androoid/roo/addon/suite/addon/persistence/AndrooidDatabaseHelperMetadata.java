@@ -135,10 +135,11 @@ public class AndrooidDatabaseHelperMetadata extends AbstractItdTypeDetailsProvid
 		parameters.add(JavaType.INT_OBJECT);
 		JavaType returnType = new JavaType("com.j256.ormlite.dao.Dao", 0, DataType.TYPE, null, parameters);
 
-		String daoName = Character.toLowerCase(entity.getSimpleTypeName().charAt(0))
+		String daoName = entity.getSimpleTypeName().concat("Dao");
+		String fieldDaoName = Character.toLowerCase(entity.getSimpleTypeName().charAt(0))
 				+ entity.getSimpleTypeName().substring(1).concat("Dao");
 
-		buildEntityDaoGetterMethodBody(bodyBuilder, daoName, entity);
+		buildEntityDaoGetterMethodBody(bodyBuilder, fieldDaoName, entity);
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
