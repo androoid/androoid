@@ -1,5 +1,6 @@
 package io.androoid.roo.addon.suite.addon.activities;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.Validate;
@@ -11,10 +12,13 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
 import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
+import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.itd.AbstractItdMetadataProvider;
 import org.springframework.roo.classpath.itd.ItdTypeDetailsProvidingMetadataItem;
+import org.springframework.roo.classpath.scanner.MemberDetails;
+import org.springframework.roo.classpath.scanner.MemberDetailsScanner;
 import org.springframework.roo.model.JavaPackage;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
@@ -44,6 +48,9 @@ public class AndrooidActivityFormMetadataProvider extends AbstractItdMetadataPro
 
 	@Reference
 	TypeLocationService typeLocationService;
+
+	@Reference
+	MemberDetailsScanner memberDetailsScanner;
 
 	protected void activate(final ComponentContext cContext) {
 		context = cContext.getBundleContext();
@@ -120,8 +127,12 @@ public class AndrooidActivityFormMetadataProvider extends AbstractItdMetadataPro
 			entityIdFieldType = new JavaType(identifierFieldTypeAttr.getValue());
 		}
 
+		// Getting entity fields
+		MemberDetails memberDetails = memberDetailsScanner.getMemberDetails(getClass().getName(), entityDetails);
+		List<FieldMetadata> entityFields = memberDetails.getFields();
+
 		return new AndrooidActivityFormMetadata(metadataIdentificationString, aspectName, governorPhysicalTypeMetadata,
-				projectPackage, entity, entityIdFieldName, entityIdFieldType);
+				projectPackage, entity, entityIdFieldName, entityIdFieldType, entityFields);
 	}
 
 	public String getProvidesType() {

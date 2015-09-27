@@ -2,12 +2,16 @@ package io.androoid.roo.addon.suite.addon.activities;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.roo.classpath.PhysicalTypeIdentifierNamingUtils;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
+import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.FieldMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
+import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMetadataItem;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
 import org.springframework.roo.model.DataType;
@@ -38,6 +42,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	private final JavaType arrayListEntityJavaType;
 	private final String getIdFieldMethod;
 	private final JavaType entityIdFieldType;
+	private final List<FieldMetadata> entityFields;
 
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
@@ -81,7 +86,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	 */
 	public AndrooidActivityFormMetadata(final String identifier, final JavaType aspectName,
 			final PhysicalTypeMetadata governorPhysicalTypeMetadata, JavaPackage projectPackage, JavaType entity,
-			String entityIdFieldName, JavaType entityIdFieldType) {
+			String entityIdFieldName, JavaType entityIdFieldType, List<FieldMetadata> entityFields) {
 		super(identifier, aspectName, governorPhysicalTypeMetadata);
 		Validate.isTrue(isValid(identifier), "Metadata identification string '%s' does not appear to be a valid",
 				identifier);
@@ -95,6 +100,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		this.getIdFieldMethod = "get"
 				.concat(Character.toUpperCase(entityIdFieldName.charAt(0)) + entityIdFieldName.substring(1));
 		this.entityIdFieldType = entityIdFieldType;
+		this.entityFields = entityFields;
 
 		// Adding fields
 		addFormActivityFields();
@@ -111,6 +117,65 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		FieldMetadataBuilder adapterField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
 				new JavaSymbolName(entity.getSimpleTypeName().toLowerCase()), entity, null);
 		builder.addField(adapterField);
+
+		// Adding fields on current form activity
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+
+					boolean validField = false;
+
+					// Getting field type
+					JavaType fieldType = field.getFieldType();
+					JavaType formFieldType = null;
+
+					if (fieldType.equals(JavaType.STRING)) {
+						formFieldType = new JavaType("android.widget.EditText");
+						validField = true;
+					} else
+						if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
+						formFieldType = new JavaType("android.widget.Switch");
+						validField = true;
+					} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+						formFieldType = new JavaType("org.osmdroid.views.MapView");
+						validField = true;
+					} else {
+						// TODO: Check if current field type match with some
+						// other declared entity
+					}
+
+					if (validField) {
+						String fieldName = entity.getSimpleTypeName().toLowerCase()
+								+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+								+ field.getFieldName().getSymbolName().substring(1)
+										.concat(formFieldType.getSimpleTypeName());
+
+						FieldMetadataBuilder entityField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+								new JavaSymbolName(fieldName), formFieldType, null);
+						builder.addField(entityField);
+					}
+				}
+			}
+
+		}
+
+		FieldMetadataBuilder modeField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE, new JavaSymbolName("mode"),
+				JavaType.STRING, null);
+		builder.addField(modeField);
 
 	}
 
