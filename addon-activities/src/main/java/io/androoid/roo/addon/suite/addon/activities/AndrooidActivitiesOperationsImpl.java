@@ -202,6 +202,48 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
+	
+	/**
+	 * This method creates new AndrooidFormActivity related with an specified
+	 * entity that will allow users to manage data about the specified entity.
+	 * 
+	 * @param entity
+	 *            JavaType that will be used to generate the related activity
+	 */
+	private void addFormActivity(JavaType entity) {
+
+		// Creates new activity JavaType
+		String entityName = entity.getSimpleTypeName();
+		String formActivityName = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("FormActivity");
+		JavaType formActivity = new JavaType(formActivityName);
+
+		int modifier = Modifier.PUBLIC;
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(formActivity,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", formActivity);
+
+		// Prepare class builder
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, modifier, formActivity, PhysicalTypeCategory.CLASS);
+
+		// Including @AndrooidFormActivity annotation
+		AnnotationMetadataBuilder formActivityAnnotation = new AnnotationMetadataBuilder(
+				new JavaType(AndrooidFormActivity.class));
+		formActivityAnnotation.addClassAttribute("entity", entity);
+		cidBuilder.addAnnotation(formActivityAnnotation);
+
+		// AndrooidActivityList extends OrmLiteBaseListActivity<DatabaseHelper>
+		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseActivity", 0, DataType.TYPE,
+				null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
+						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
+		cidBuilder.addExtendsTypes(extendsType);
+
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
 
 	/**
 	 * Method that generates onItemCheckedStateChanged ListActivity method
@@ -495,48 +537,6 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		return methodBuilder; // Build and return a MethodMetadata
 		// instance
-	}
-
-	/**
-	 * This method creates new AndrooidFormActivity related with an specified
-	 * entity that will allow users to manage data about the specified entity.
-	 * 
-	 * @param entity
-	 *            JavaType that will be used to generate the related activity
-	 */
-	private void addFormActivity(JavaType entity) {
-
-		// Creates new activity JavaType
-		String entityName = entity.getSimpleTypeName();
-		String formActivityName = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
-				.concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
-				.concat("FormActivity");
-		JavaType formActivity = new JavaType(formActivityName);
-
-		int modifier = Modifier.PUBLIC;
-		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(formActivity,
-				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
-
-		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
-		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", formActivity);
-
-		// Prepare class builder
-		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
-				declaredByMetadataId, modifier, formActivity, PhysicalTypeCategory.CLASS);
-
-		// Including @AndrooidFormActivity annotation
-		AnnotationMetadataBuilder formActivityAnnotation = new AnnotationMetadataBuilder(
-				new JavaType(AndrooidFormActivity.class));
-		formActivityAnnotation.addClassAttribute("entity", entity);
-		cidBuilder.addAnnotation(formActivityAnnotation);
-
-		// AndrooidActivityList extends OrmLiteBaseListActivity<DatabaseHelper>
-		JavaType extendsType = new JavaType("com.j256.ormlite.android.apptools.OrmLiteBaseActivity", 0, DataType.TYPE,
-				null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
-						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
-		cidBuilder.addExtendsTypes(extendsType);
-
-		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
 
 	/**
