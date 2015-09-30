@@ -200,13 +200,11 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				JavaType.STRING, null);
 		builder.addField(modeField);
 
-		// Check if GeoSearchHelper was included in current
-		// class.
+		// Check if exists some geo field
 		if (hasGeoField) {
 			FieldMetadataBuilder geoSearchHelper = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
-					new JavaSymbolName("geoSearchHelper"),
-					new JavaType(applicationPackage.getFullyQualifiedPackageName().concat(".utils.GeoSearchHelper")),
-					null);
+					new JavaSymbolName("addressSearchHelper"),
+					new JavaType("io.androoid.geo.search.AddressSearchHelper"), null);
 
 			builder.addField(geoSearchHelper);
 		}
