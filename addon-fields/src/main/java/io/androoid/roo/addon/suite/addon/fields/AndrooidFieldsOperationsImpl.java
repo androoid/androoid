@@ -66,6 +66,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	/** {@inheritDoc} */
 	public void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
+		// Install necessary dependencies
+		installDependencies();
+		
 		// Create new field
 		typeManagementService.addField(getFieldMetadata(entity, fieldName, fieldType).build());
 		// Update persistence config file
@@ -74,6 +77,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	/** {@inheritDoc} */
 	public void createReferencedField(JavaType entity, JavaSymbolName fieldName, JavaType entityToReference) {
+		
+		// Install necessary dependencies
+		installDependencies();
 
 		// Check if fieldType is an entity
 		ClassOrInterfaceTypeDetails details = typeLocationService.getTypeDetails(entityToReference);
@@ -105,9 +111,9 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	/** {@inheritDoc} */
 	public void createGeoField(JavaType entity, JavaSymbolName fieldName, AndrooidFieldGeoTypes fieldType) {
-
-		// Install GEO dependencies
-		installGeoDependencies();
+		
+		// Install necessary dependencies
+		installDependencies();
 
 		FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, new JavaType(fieldType.description));
 
@@ -189,7 +195,7 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 	 * Method that uses configuration.xml file to install dependencies and
 	 * properties on current pom.xml
 	 */
-	private void installGeoDependencies() {
+	private void installDependencies() {
 		final Element configuration = XmlUtils.getConfiguration(getClass());
 
 		// Add properties
