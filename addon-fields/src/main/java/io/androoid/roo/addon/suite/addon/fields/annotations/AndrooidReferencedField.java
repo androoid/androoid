@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @author Juan Carlos García
  * @since 1.0
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface AndrooidReferencedField {
 
