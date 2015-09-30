@@ -118,6 +118,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				new JavaSymbolName(entity.getSimpleTypeName().toLowerCase()), entity, null);
 		builder.addField(adapterField);
 
+		boolean hasGeoField = false;
 		// Adding fields on current form activity
 		for (FieldMetadata field : entityFields) {
 
@@ -153,6 +154,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 					} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
 						formFieldType = new JavaType("org.osmdroid.views.MapView");
 						validField = true;
+						hasGeoField = true;
 					} else {
 						// TODO: Check if current field type match with some
 						// other declared entity
@@ -167,6 +169,19 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						FieldMetadataBuilder entityField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
 								new JavaSymbolName(fieldName), formFieldType, null);
 						builder.addField(entityField);
+
+						// If is a GEO field, is necessary to add an Edit Text
+						// to make some geo search
+						if (hasGeoField) {
+							fieldName = entity.getSimpleTypeName().toLowerCase()
+									+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+									+ field.getFieldName().getSymbolName().substring(1).concat("EditText");
+
+							FieldMetadataBuilder geoField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+									new JavaSymbolName(fieldName), new JavaType("android.widget.EditText"), null);
+							builder.addField(geoField);
+						}
+
 					}
 				}
 			}
@@ -176,6 +191,17 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		FieldMetadataBuilder modeField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE, new JavaSymbolName("mode"),
 				JavaType.STRING, null);
 		builder.addField(modeField);
+
+		// Check if GeoSearchHelper was included in current
+		// class.
+		if (hasGeoField) {
+			FieldMetadataBuilder geoSearchHelper = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+					new JavaSymbolName("geoSearchHelper"),
+					new JavaType(applicationPackage.getFullyQualifiedPackageName().concat(".utils.GeoSearchHelper")),
+					null);
+
+			builder.addField(geoSearchHelper);
+		}
 
 	}
 
