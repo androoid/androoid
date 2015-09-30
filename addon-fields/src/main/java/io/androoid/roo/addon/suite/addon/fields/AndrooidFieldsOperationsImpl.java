@@ -29,6 +29,7 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
+import io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField;
 import io.androoid.roo.addon.suite.addon.persistence.AndrooidPersistenceOperations;
 
 /**
@@ -54,7 +55,7 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
 	@Reference
 	private TypeManagementService typeManagementService;
-	
+
 	@Reference
 	private AndrooidPersistenceOperations persistenceOperations;
 
@@ -91,8 +92,13 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 		databaseFieldAnnotation.addBooleanAttribute("foreignAutoRefresh", true);
 		databaseFieldAnnotation.addBooleanAttribute("canBeNull", true);
 
+		// Including @AndrooidReferencedField annotation
+		AnnotationMetadataBuilder referenceAnnotation = new AnnotationMetadataBuilder(
+				new JavaType(AndrooidReferencedField.class));
+		newField.addAnnotation(referenceAnnotation);
+
 		typeManagementService.addField(newField.build());
-		
+
 		// Update persistence config file
 		persistenceOperations.updatePersistenceConfigFile();
 	}
@@ -113,7 +119,7 @@ public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 				new JavaSymbolName("SERIALIZABLE"));
 
 		typeManagementService.addField(newField.build());
-		
+
 		// Update persistence config file
 		persistenceOperations.updatePersistenceConfigFile();
 	}

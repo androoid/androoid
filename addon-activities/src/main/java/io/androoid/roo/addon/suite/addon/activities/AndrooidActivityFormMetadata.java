@@ -22,6 +22,7 @@ import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
 
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidFormActivity;
+import io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField;
 
 /**
  * Metadata for {@link AndrooidFormActivity} annotation.
@@ -119,6 +120,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addField(adapterField);
 
 		boolean hasGeoField = false;
+
 		// Adding fields on current form activity
 		for (FieldMetadata field : entityFields) {
 
@@ -126,6 +128,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 			AnnotationMetadata databaseFieldAnnotation = field
 					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
 			if (databaseFieldAnnotation != null) {
+
+				boolean hasReferencedField = false;
 
 				// Checking if field is a generatedId field
 				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
@@ -138,51 +142,55 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 				if (!generatedId) {
 
-					boolean validField = false;
-
 					// Getting field type
 					JavaType fieldType = field.getFieldType();
 					JavaType formFieldType = null;
 
-					if (fieldType.equals(JavaType.STRING)) {
-						formFieldType = new JavaType("android.widget.EditText");
-						validField = true;
-					} else
-						if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
+					if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
 						formFieldType = new JavaType("android.widget.Switch");
-						validField = true;
 					} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
 						formFieldType = new JavaType("org.osmdroid.views.MapView");
-						validField = true;
 						hasGeoField = true;
+					} else if (isReferencedField(field)) {
+						formFieldType = new JavaType("android.widget.Spinner");
+						hasReferencedField = true;
 					} else {
-						// TODO: Check if current field type match with some
-						// other declared entity
+						formFieldType = new JavaType("android.widget.EditText");
 					}
 
-					if (validField) {
-						String fieldName = entity.getSimpleTypeName().toLowerCase()
+					String fieldName = entity.getSimpleTypeName().toLowerCase()
+							+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+							+ field.getFieldName().getSymbolName().substring(1)
+									.concat(formFieldType.getSimpleTypeName());
+
+					FieldMetadataBuilder entityField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+							new JavaSymbolName(fieldName), formFieldType, null);
+					builder.addField(entityField);
+
+					// If is a GEO field, is necessary to add an Edit Text
+					// to make some geo search
+					if (hasGeoField) {
+						fieldName = entity.getSimpleTypeName().toLowerCase()
 								+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
-								+ field.getFieldName().getSymbolName().substring(1)
-										.concat(formFieldType.getSimpleTypeName());
+								+ field.getFieldName().getSymbolName().substring(1).concat("EditText");
 
-						FieldMetadataBuilder entityField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
-								new JavaSymbolName(fieldName), formFieldType, null);
-						builder.addField(entityField);
-
-						// If is a GEO field, is necessary to add an Edit Text
-						// to make some geo search
-						if (hasGeoField) {
-							fieldName = entity.getSimpleTypeName().toLowerCase()
-									+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
-									+ field.getFieldName().getSymbolName().substring(1).concat("EditText");
-
-							FieldMetadataBuilder geoField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
-									new JavaSymbolName(fieldName), new JavaType("android.widget.EditText"), null);
-							builder.addField(geoField);
-						}
-
+						FieldMetadataBuilder geoField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+								new JavaSymbolName(fieldName), new JavaType("android.widget.EditText"), null);
+						builder.addField(geoField);
 					}
+
+					// If is a referenced field, add ArrayList to include
+					// results
+					if (hasReferencedField) {
+						fieldName = fieldType.getSimpleTypeName().toLowerCase().concat("List");
+
+						FieldMetadataBuilder relatedField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
+								new JavaSymbolName(fieldName),
+								new JavaType("java.util.ArrayList", 0, DataType.TYPE, null, Arrays.asList(fieldType)),
+								null);
+						builder.addField(relatedField);
+					}
+
 				}
 			}
 
@@ -203,6 +211,19 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 			builder.addField(geoSearchHelper);
 		}
 
+	}
+
+	/**
+	 * Method to check if provided field has @AndrooidReferencedField annotation
+	 * 
+	 * @param field
+	 *            FieldMetadata with the field to check
+	 * 
+	 * @return true if is annotated with @AndrooidReferencedField
+	 */
+	private boolean isReferencedField(FieldMetadata field) {
+		AnnotationMetadata annotation = field.getAnnotation(new JavaType(AndrooidReferencedField.class));
+		return annotation != null;
 	}
 
 	@Override
