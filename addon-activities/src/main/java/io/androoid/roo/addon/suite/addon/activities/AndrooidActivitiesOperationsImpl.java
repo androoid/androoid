@@ -46,6 +46,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidActionBarCallback;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidFormActivity;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidListActivity;
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidMainActivity;
@@ -102,6 +103,9 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		// Including basic files
 		addBasicFiles(projectOperations.getFocusedTopLevelPackage());
 
+		// Including utilities
+		addActionBarCallbackUtility(projectOperations.getFocusedTopLevelPackage());
+
 		// Update AndroidManifest.xml with basic configuration
 		Map<String, String> attributes = new HashMap<String, String>();
 		attributes.put("android:icon", "@mipmap/app_icon");
@@ -121,6 +125,37 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		// Generates Main Activity by default.
 		generatesMainActivity();
+
+	}
+
+	/**
+	 * Method that includes ActionBarCallback utility
+	 * 
+	 * @param projectPackage
+	 *            JavaPackage that indicates generated project package
+	 * 
+	 */
+	private void addActionBarCallbackUtility(JavaPackage projectPackage) {
+
+		// Generate ActionBarCallback
+		JavaType actionBarCallback = new JavaType(
+				projectPackage.getFullyQualifiedPackageName().concat(".utils.ActionBarCallback"));
+
+		int modifier = Modifier.PUBLIC;
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(actionBarCallback,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+
+		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", actionBarCallback);
+
+		// Prepare class builder
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, modifier, actionBarCallback, PhysicalTypeCategory.CLASS);
+
+		// Including @AndrooidActionBarCallback annotation
+		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(AndrooidActionBarCallback.class)));
+
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 
 	}
 
@@ -202,7 +237,7 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
-	
+
 	/**
 	 * This method creates new AndrooidFormActivity related with an specified
 	 * entity that will allow users to manage data about the specified entity.
@@ -273,8 +308,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
 
 		// Invoke .aj method with necessary implementation
-		bodyBuilder.appendFormalLine(String.format("onCheckedStateChanged%s(mode, position, id, checked);",
-				entity.getSimpleTypeName()));
+		bodyBuilder.appendFormalLine(
+				String.format("onCheckedStateChanged%s(mode, position, id, checked);", entity.getSimpleTypeName()));
 
 		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
 		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
