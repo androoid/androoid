@@ -32,4 +32,5 @@ image:https://raw.githubusercontent.com/androoid/androoid.github.io/master/publi
 |=======================================================================================================================================
 |Name					|User ID								|Email				|Location					|Role
 |Juan Carlos García     |http://github.com/jcagarcia[jcagarcia]	|jugade92@gmail.com	|València, Spain			|Founder, lead developer
+|Rubén Ajaú			    | -										|-					|València, Spain			|Logo Designer
 |=======================================================================================================================================
