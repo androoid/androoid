@@ -21,6 +21,7 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.MethodMetadata;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
@@ -155,7 +156,149 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		// Including @AndrooidActionBarCallback annotation
 		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(AndrooidActionBarCallback.class)));
 
+		// Including implements ActionMode.Callback
+		cidBuilder.addImplementsType(new JavaType("android.view.ActionMode.Callback").getBaseType());
+
+		// Including necessary methods
+		cidBuilder.addMethod(getOnCreateActionModeMethod(declaredByMetadataId));
+		cidBuilder.addMethod(getOnPrepareActionModeMethod(declaredByMetadataId));
+		cidBuilder.addMethod(getOnActionItemClickedMethod(declaredByMetadataId));
+		cidBuilder.addMethod(getOnDestroyActionModeMethod(declaredByMetadataId));
+
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+
+	}
+
+	/**
+	 * Method that generates onCreateActionMode method
+	 * 
+	 * @param declaredByMetadataId
+	 * 
+	 * @return MethodMetadata that will be added to builder
+	 */
+	private MethodMetadata getOnCreateActionModeMethod(String declaredByMetadataId) {
+
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		bodyBuilder.appendFormalLine("return onCreateAndrooidActionMode(mode, menu);");
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onCreateActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder.build(); // Build and return a MethodMetadata
+		// instance
+
+	}
+
+	/**
+	 * Method that generates onPrepareActionMode method
+	 * 
+	 * @param declaredByMetadataId
+	 * 
+	 * @return MethodMetadata that will be added to builder
+	 */
+	private MethodMetadata getOnPrepareActionModeMethod(String declaredByMetadataId) {
+
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		bodyBuilder.appendFormalLine("return onPrepareAndrooidActionMode(mode, menu);");
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onPrepareActionMode"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder.build(); // Build and return a MethodMetadata
+		// instance
+
+	}
+
+	/**
+	 * Method that generates onActionItemClicked method
+	 * 
+	 * @param declaredByMetadataId
+	 * 
+	 * @return MethodMetadata that will be added to builder
+	 */
+	private MethodMetadata getOnActionItemClickedMethod(String declaredByMetadataId) {
+
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.MenuItem")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+		parameterNames.add(new JavaSymbolName("item"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		bodyBuilder.appendFormalLine("return onAndrooidActionItemClicked(mode, item);");
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onActionItemClicked"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder.build(); // Build and return a MethodMetadata
+		// instance
+
+	}
+
+	/**
+	 * Method that generates onDestroyActionMode method
+	 * 
+	 * @param declaredByMetadataId
+	 * 
+	 * @return MethodMetadata that will be added to builder
+	 */
+	private MethodMetadata getOnDestroyActionModeMethod(String declaredByMetadataId) {
+
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.ActionMode")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("mode"));
+
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+		bodyBuilder.appendFormalLine("onAndrooidDestroyActionMode(mode);");
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("onDestroyActionMode"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder.build(); // Build and return a MethodMetadata
+		// instance
 
 	}
 
