@@ -1,8 +1,12 @@
 package io.androoid.roo.addon.suite.addon.activities;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -10,9 +14,13 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifierNamingUtils;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
 import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.FieldMetadataBuilder;
+import org.springframework.roo.classpath.details.MethodMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
+import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMetadataItem;
+import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
 import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.ImportRegistrationResolver;
@@ -44,6 +52,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	private final String getIdFieldMethod;
 	private final JavaType entityIdFieldType;
 	private final List<FieldMetadata> entityFields;
+	private final Map<String, String> fieldNameLayout;
 
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
@@ -102,13 +111,162 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				.concat(Character.toUpperCase(entityIdFieldName.charAt(0)) + entityIdFieldName.substring(1));
 		this.entityIdFieldType = entityIdFieldType;
 		this.entityFields = entityFields;
+		this.fieldNameLayout = new HashMap<String, String>();
 
 		// Adding fields
 		addFormActivityFields();
 
+		// Adding necessary methods
+		builder.addMethod(getOnCreateMethod());
+
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
 
+	}
+
+	/**
+	 * Method that generates onCreate FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnCreateMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.os.Bundle")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("savedInstanceState"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnCreateMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onCreate"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onCreate FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnCreateMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// super.onCreate(savedInstanceState);
+		bodyBuilder.appendFormalLine("super.onCreate(savedInstanceState);");
+
+		// setContentView(R.layout.entity_list_activity);
+		bodyBuilder.appendFormalLine(String.format("setContentView(%s.layout.%s_form_activity);",
+				new JavaType(applicationPackage.getFullyQualifiedPackageName().concat(".R"))
+						.getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName().toLowerCase()));
+
+		// Adding back button
+		bodyBuilder.appendFormalLine("// Adding back button");
+
+		// getActionBar().setDisplayHomeAsUpEnabled(true);
+		bodyBuilder.appendFormalLine("getActionBar().setDisplayHomeAsUpEnabled(true);");
+
+		// Getting form items
+		bodyBuilder.appendFormalLine("// Getting form items");
+
+		// Using saved fieldNameLayout to include view items
+		for (Entry<String, String> entry : fieldNameLayout.entrySet()) {
+			String fieldName = entry.getKey();
+			String fieldId = entry.getValue();
+			String fieldType = "";
+
+			boolean isMapView = false;
+			if (fieldName.endsWith("EditText")) {
+				fieldType = "EditText";
+			} else if (fieldName.endsWith("Switch")) {
+				fieldType = "Switch";
+			} else if (fieldName.endsWith("MapView")) {
+				fieldType = "MapView";
+				isMapView = true;
+			} else if (fieldName.endsWith("Spinner")) {
+				fieldType = "Spinner";
+			}
+
+			// fieldName = (fieldType) findViewById(R.id.fieldId);
+			bodyBuilder
+					.appendFormalLine(String.format("%s = (%s) findViewById(R.id.%s);", fieldName, fieldType, fieldId));
+
+			// If is a MapView item needs some extra configuration
+			if (isMapView) {
+
+				// Including mapview text
+				String textFieldName = fieldName.replaceFirst("MapView", "EdiText");
+
+				// fieldName = (fieldType) findViewById(R.id.fieldId);
+				fieldId = fieldId.substring(0, fieldId.lastIndexOf("_")).concat("_text");
+				bodyBuilder.appendFormalLine(
+						String.format("%s = (%s) findViewById(R.id.%s);", textFieldName, "EditText", fieldId));
+
+				// Initializing Map element
+				bodyBuilder.appendFormalLine("// Initializing Map element");
+
+				// fieldName.setTileSource(TileSourceFactory.MAPNIK);
+				bodyBuilder.appendFormalLine(String.format("%s.setTileSource(%s.MAPNIK);", fieldName,
+						new JavaType("org.osmdroid.tileprovider.tilesource.TileSourceFactory")
+								.getNameIncludingTypeParameters(false, importResolver)));
+				// fieldName.setMultiTouchControls(true);
+				bodyBuilder.appendFormalLine(String.format("%s.setMultiTouchControls(true);", fieldName));
+
+				// fieldName.setClickable(true);
+				bodyBuilder.appendFormalLine(String.format("%s.setClickable(true);", fieldName));
+
+				// Initial map position
+				bodyBuilder.appendFormalLine("// Initial map position");
+
+				// IMapController mapController = fieldName.getController();
+				bodyBuilder.appendFormalLine(String.format("%s mapController = %s.getController();",
+						new JavaType("org.osmdroid.api.IMapController").getNameIncludingTypeParameters(false,
+								importResolver),
+						fieldName));
+
+				// mapController.setZoom(5);
+				bodyBuilder.appendFormalLine("mapController.setZoom(5);");
+
+				// GeoPoint startPoint = new GeoPoint(45.416775400000000000,
+				// -7.703790199999957600);
+				bodyBuilder.appendFormalLine(
+						String.format("%s startPoint = new GeoPoint(45.416775400000000000, -7.703790199999957600);",
+								new JavaType("org.osmdroid.util.GeoPoint").getNameIncludingTypeParameters(false,
+										importResolver)));
+
+				// mapController.setCenter(startPoint);
+				bodyBuilder.appendFormalLine("mapController.setCenter(startPoint);");
+
+				bodyBuilder.appendFormalLine("");
+
+				// Adding event on street input
+				bodyBuilder.appendFormalLine("// Adding event on street input");
+
+				// final Handler mHandler = new Handler();
+				bodyBuilder.appendFormalLine(String.format("final %s mHandler = new Handler();",
+						new JavaType("android.os.Handler").getNameIncludingTypeParameters(false, importResolver)));
+
+				// textFieldName.addTextChangedListener(new TextWatcher() {
+				bodyBuilder.appendFormalLine(String.format("%s.addTextChangedListener(new %s() {", textFieldName,
+						new JavaType("android.text.TextWatcher").getNameIncludingTypeParameters(false,
+								importResolver)));
+				
+				// TODO: Implement TextChangedListener
+				
+				// });
+				bodyBuilder.appendFormalLine("});");
+			}
+
+		}
+		
+		// TODO: Check if is create, update or show view
 	}
 
 	/**
@@ -145,17 +303,22 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 					// Getting field type
 					JavaType fieldType = field.getFieldType();
 					JavaType formFieldType = null;
+					String fieldViewType = "";
 
 					if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
 						formFieldType = new JavaType("android.widget.Switch");
+						fieldViewType = "switch";
 					} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
 						formFieldType = new JavaType("org.osmdroid.views.MapView");
 						hasGeoField = true;
+						fieldViewType = "mapview";
 					} else if (isReferencedField(field)) {
 						formFieldType = new JavaType("android.widget.Spinner");
 						hasReferencedField = true;
+						fieldViewType = "spinner";
 					} else {
 						formFieldType = new JavaType("android.widget.EditText");
+						fieldViewType = "text";
 					}
 
 					String fieldName = entity.getSimpleTypeName().toLowerCase()
@@ -167,6 +330,13 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 							new JavaSymbolName(fieldName), formFieldType, null);
 					builder.addField(entityField);
 
+					// Saving fieldNameLayout that will be used on findViewById
+					// method
+					fieldNameLayout.put(fieldName,
+							entity.getSimpleTypeName().toLowerCase().concat("_")
+									.concat(field.getFieldName().getSymbolName().toLowerCase()).concat("_")
+									.concat(fieldViewType));
+
 					// If is a GEO field, is necessary to add an Edit Text
 					// to make some geo search
 					if (hasGeoField) {
@@ -177,6 +347,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						FieldMetadataBuilder geoField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
 								new JavaSymbolName(fieldName), new JavaType("android.widget.EditText"), null);
 						builder.addField(geoField);
+
 					}
 
 					// If is a referenced field, add ArrayList to include
