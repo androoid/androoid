@@ -168,12 +168,14 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				entity.getSimpleTypeName().toLowerCase()));
 
 		// Adding back button
+		bodyBuilder.appendFormalLine("");
 		bodyBuilder.appendFormalLine("// Adding back button");
 
 		// getActionBar().setDisplayHomeAsUpEnabled(true);
 		bodyBuilder.appendFormalLine("getActionBar().setDisplayHomeAsUpEnabled(true);");
 
 		// Getting form items
+		bodyBuilder.appendFormalLine("");
 		bodyBuilder.appendFormalLine("// Getting form items");
 
 		// Using saved fieldNameLayout to include view items
@@ -257,16 +259,152 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				bodyBuilder.appendFormalLine(String.format("%s.addTextChangedListener(new %s() {", textFieldName,
 						new JavaType("android.text.TextWatcher").getNameIncludingTypeParameters(false,
 								importResolver)));
-				
-				// TODO: Implement TextChangedListener
-				
+
+				// public void afterTextChanged(Editable s) {
+				bodyBuilder.indent();
+				bodyBuilder.appendFormalLine(String.format("public void afterTextChanged(%s s) {",
+						new JavaType("android.text.Editable").getNameIncludingTypeParameters(false, importResolver)));
+
+				// mHandler.removeCallbacks(mFilterTask);
+				bodyBuilder.indent();
+				bodyBuilder.appendFormalLine("mHandler.removeCallbacks(mFilterTask);");
+
+				// mHandler.postDelayed(mFilterTask, 1000);
+				bodyBuilder.appendFormalLine("mHandler.postDelayed(mFilterTask, 1000);");
+
+				bodyBuilder.indentRemove();
+				bodyBuilder.appendFormalLine("}");
+
+				// public void beforeTextChanged(CharSequence s, int start, int
+				// count, int after) {
+				bodyBuilder.appendFormalLine("");
+				bodyBuilder.appendFormalLine(String
+						.format("public void beforeTextChanged(CharSequence s, int start, int count, int after) {"));
+				bodyBuilder.appendFormalLine("}");
+				bodyBuilder.appendFormalLine("");
+
+				// public void onTextChanged(CharSequence s, int start, int
+				// before, int count) {
+				bodyBuilder.appendFormalLine("");
+				bodyBuilder.appendFormalLine(
+						String.format("public void onTextChanged(CharSequence s, int start, int before, int count) {"));
+				bodyBuilder.appendFormalLine("}");
+				bodyBuilder.appendFormalLine("");
+
+				// Runnable mFilterTask = new Runnable() {
+				bodyBuilder.appendFormalLine("Runnable mFilterTask = new Runnable() {");
+				bodyBuilder.indent();
+				bodyBuilder.appendFormalLine("@Override");
+
+				// public void run() {
+				bodyBuilder.appendFormalLine("public void run() {");
+				bodyBuilder.indent();
+
+				// // Creating AsyncTask to allow address search in async mode
+				bodyBuilder.appendFormalLine("// Creating AsyncTask to allow address search in async mode");
+
+				// addressSearchHelper = new AddressSearchHelper();
+				bodyBuilder.appendFormalLine("addressSearchHelper = new AddressSearchHelper();");
+
+				// addressSearchHelper.delegate = EntityFormActivity.this;
+				bodyBuilder.appendFormalLine(String.format("addressSearchHelper.delegate = %sFormActivity.this;",
+						entity.getSimpleTypeName()));
+
+				// // Update map with address location
+				bodyBuilder.appendFormalLine("");
+				bodyBuilder.appendFormalLine(" // Update map with address location");
+
+				// String address = entityLocationText.getText().toString();
+				bodyBuilder.appendFormalLine(String.format("String address = %s.getText().toString();", textFieldName));
+
+				// if (address != null) {
+				bodyBuilder.appendFormalLine("if (address != null) {");
+				bodyBuilder.indent();
+
+				// addressSearchHelper.execute(address);
+				bodyBuilder.appendFormalLine("addressSearchHelper.execute(address);");
+				bodyBuilder.indentRemove();
+				bodyBuilder.appendFormalLine("}");
+
+				bodyBuilder.indentRemove();
+				bodyBuilder.appendFormalLine("}");
+
+				bodyBuilder.indentRemove();
+				bodyBuilder.appendFormalLine("};");
+
+				bodyBuilder.indentRemove();
+
 				// });
 				bodyBuilder.appendFormalLine("});");
 			}
 
 		}
-		
-		// TODO: Check if is create, update or show view
+
+		bodyBuilder.appendFormalLine("");
+
+		// TODO: Populate spinners
+
+		// // Checking if is create view, update view or show view
+		bodyBuilder.appendFormalLine("// Checking if is create view, update view or show view");
+
+		// Bundle bundle = getIntent().getExtras();
+		bodyBuilder.appendFormalLine("Bundle bundle = getIntent().getExtras();");
+
+		// if(bundle != null){
+		bodyBuilder.appendFormalLine("if(bundle != null){");
+		bodyBuilder.indent();
+
+		// // Getting entity id
+		bodyBuilder.appendFormalLine(String.format("// Getting entity id"));
+
+		// int entityId = bundle.getInt("entityId");
+		bodyBuilder.appendFormalLine(
+				String.format("int %s = bundle.getInt(\"%s\");", entity.getSimpleTypeName().toLowerCase().concat("Id"),
+						entity.getSimpleTypeName().toLowerCase().concat("Id")));
+
+		// // Getting entity by id
+		bodyBuilder.appendFormalLine("// Getting entity by id");
+
+		// populateForm(entityId);
+		bodyBuilder.appendFormalLine(
+				String.format("populateForm(%s);", entity.getSimpleTypeName().toLowerCase().concat("Id")));
+
+		// // Disabling elements if is show view
+		bodyBuilder.appendFormalLine("// Disabling elements if is show view");
+
+		// mode = bundle.getString("mode");
+		bodyBuilder.appendFormalLine("mode = bundle.getString(\"mode\");");
+
+		// if("show".equals(mode)){
+		bodyBuilder.appendFormalLine("if(\"show\".equals(mode)){");
+		bodyBuilder.indent();
+
+		// // Updating title to show
+		bodyBuilder.appendFormalLine("// Updating title to show");
+
+		// setTitle(R.string.title_activity_entity_form_show);
+		bodyBuilder.appendFormalLine(String.format("setTitle(R.string.title_activity_%s_form_show);",
+				entity.getSimpleTypeName().toLowerCase()));
+
+		// disableFormElements();
+		bodyBuilder.appendFormalLine("disableFormElements();");
+
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}else{");
+		bodyBuilder.indent();
+
+		// // Updating title to edit
+		bodyBuilder.appendFormalLine("// Updating title to edit");
+
+		// setTitle(R.string.title_activity_entity_form_update);
+		bodyBuilder.appendFormalLine(String.format("setTitle(R.string.title_activity_%s_form_update);",
+				entity.getSimpleTypeName().toLowerCase()));
+
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
 	}
 
 	/**
