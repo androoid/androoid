@@ -118,6 +118,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Adding necessary methods
 		builder.addMethod(getOnCreateMethod());
+		builder.addMethod(getOnCreateOptionsMenuMethod());
+		builder.addMethod(getOnOptionsItemSelectedMethod());
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -405,6 +407,159 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
+	}
+
+	/**
+	 * Method that generates onCreateOptionsMenu FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnCreateOptionsMenuMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.Menu")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("menu"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnCreateOptionsMenuMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onCreateOptionsMenu"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onCreateOptionsMenu FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnCreateOptionsMenuMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// // Inflate the menu; this adds items to the action bar if it is
+		// present.
+		bodyBuilder.appendFormalLine("// Inflate the menu; this adds items to the action bar if it is present.");
+
+		// if(mode == null){
+		bodyBuilder.appendFormalLine("if(mode == null){");
+		bodyBuilder.indent();
+
+		// getMenuInflater().inflate(R.menu.menu_form, menu);
+		bodyBuilder.appendFormalLine("getMenuInflater().inflate(R.menu.menu_form, menu);");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+
+	}
+
+	/**
+	 * Method that generates onOptionsItemSelected FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getOnOptionsItemSelectedMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.MenuItem")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("item"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildOnOptionsItemSelectedMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("onOptionsItemSelected"), JavaType.BOOLEAN_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates onOptionsItemSelected FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildOnOptionsItemSelectedMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// switch (item.getItemId()) {
+		bodyBuilder.appendFormalLine("switch (item.getItemId()) {");
+		bodyBuilder.indent();
+
+		// // Respond to the action bar's Up/Home button
+		bodyBuilder.appendFormalLine("// Respond to the action bar's Up/Home button");
+
+		// case android.R.id.home:
+		bodyBuilder.appendFormalLine("case android.R.id.home:");
+		bodyBuilder.indent();
+
+		// NavUtils.navigateUpFromSameTask(this);
+		bodyBuilder.appendFormalLine(String.format("%s.navigateUpFromSameTask(this);",
+				new JavaType("android.support.v4.app.NavUtils").getNameIncludingTypeParameters(false, importResolver)));
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+		bodyBuilder.indentRemove();
+
+		// case R.id.action_save:
+		bodyBuilder.appendFormalLine("case R.id.action_save:");
+		bodyBuilder.indent();
+
+		// // Checks if there is a selected entity or is necessary to create a
+		// new one
+		bodyBuilder.appendFormalLine("// Checks if there is a selected entity or is necessary to create a new one");
+
+		// if(entity != null){
+		bodyBuilder.appendFormalLine(String.format("if(%s != null){", entity.getSimpleTypeName().toLowerCase()));
+		bodyBuilder.indent();
+
+		// // Update existing Entity
+		bodyBuilder.appendFormalLine(String.format("// Update existing %s", entity.getSimpleTypeName()));
+
+		// update();
+		bodyBuilder.appendFormalLine("update();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}else{");
+		bodyBuilder.indent();
+
+		// // Create newEntity
+		bodyBuilder.appendFormalLine(String.format("// Create new %s", entity.getSimpleTypeName()));
+
+		// create();
+		bodyBuilder.appendFormalLine("create();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// Return to list
+		bodyBuilder.appendFormalLine("// Return to list");
+
+		// NavUtils.navigateUpFromSameTask(this);
+		bodyBuilder.appendFormalLine("NavUtils.navigateUpFromSameTask(this);");
+
+		// return true;
+		bodyBuilder.appendFormalLine("return true;");
+		bodyBuilder.indentRemove();
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+		// return super.onOptionsItemSelected(item);
+		bodyBuilder.appendFormalLine("return super.onOptionsItemSelected(item);");
+
 	}
 
 	/**
