@@ -45,10 +45,8 @@ public class AndrooidActivityFormMetadataProvider extends AbstractItdMetadataPro
 
 	@Reference
 	ProjectOperations projectOperations;
-
 	@Reference
 	TypeLocationService typeLocationService;
-
 	@Reference
 	MemberDetailsScanner memberDetailsScanner;
 

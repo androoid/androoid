@@ -19,6 +19,9 @@ import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.details.comments.CommentStructure;
+import org.springframework.roo.classpath.details.comments.CommentStructure.CommentLocation;
+import org.springframework.roo.classpath.details.comments.JavadocComment;
 import org.springframework.roo.classpath.itd.AbstractItdTypeDetailsProvidingMetadataItem;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.metadata.MetadataIdentificationUtils;
@@ -30,7 +33,6 @@ import org.springframework.roo.model.JavaType;
 import org.springframework.roo.project.LogicalPath;
 
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidFormActivity;
-import io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField;
 
 /**
  * Metadata for {@link AndrooidFormActivity} annotation.
@@ -118,6 +120,10 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 		// Adding necessary methods
 		builder.addMethod(getOnCreateMethod());
+		builder.addMethod(getDisableFormElementsMethod());
+		builder.addMethod(getPopulateFormMethod());
+		builder.addMethod(getCreateMethod());
+		builder.addMethod(getUpdateMethod());
 		builder.addMethod(getOnCreateOptionsMenuMethod());
 		builder.addMethod(getOnOptionsItemSelectedMethod());
 
@@ -410,6 +416,368 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	}
 
 	/**
+	 * Method that generates disableFormElements FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getDisableFormElementsMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildDisableFormElementsMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("disableFormElements"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment("Method that disables all form items. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates disableFormElements FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildDisableFormElementsMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// // Disabling all form fields
+		bodyBuilder.appendFormalLine("// Disabling all form fields");
+
+		// Getting all defined fields
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+					// Getting fieldName
+					String fieldName = getFieldNameOnActivity(field);
+					bodyBuilder.appendFormalLine(String.format("%s.setEnabled(false);", fieldName));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method that generates populateForm FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getPopulateFormMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("id"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildPopulateFormMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("populateForm"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(String
+				.format("Method that populate form with selected %s id \n\n@param id", entity.getSimpleTypeName()));
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates populateForm FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildPopulateFormMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// // Getting entity object
+		bodyBuilder.appendFormalLine("// Getting entity object");
+
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
+		bodyBuilder.appendFormalLine(String.format("%s<%s, Integer> %sDao = getHelper().get%sDao();",
+				new JavaType("com.j256.ormlite.dao.Dao").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// entity = entityDao.queryForId(id);
+		bodyBuilder.appendFormalLine(String.format("%s = %sDao.queryForId(id);",
+				entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName().toLowerCase()));
+
+		// Getting all defined fields
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+					// Getting fieldName
+					String fieldName = getFieldNameOnActivity(field);
+
+					// Getting accessor method
+					MethodMetadataBuilder accessor = getAccessorMethod(field);
+
+					// fieldName.setText(entity.getField());
+					bodyBuilder.appendFormalLine(String.format("%s.setText(%s.%s());", fieldName,
+							entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+
+				}
+			}
+		}
+
+		// }catch (Exception e){
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}catch (Exception e){");
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+	}
+
+	/**
+	 * Method that generates create FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getCreateMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildCreateMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("create"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				String.format("Method to create new %s item\n", entity.getSimpleTypeName()));
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates create FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildCreateMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
+		bodyBuilder.appendFormalLine(String.format("%s<%s, Integer> %sDao = getHelper().get%sDao();",
+				new JavaType("com.j256.ormlite.dao.Dao").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// entity = new Entity();
+		bodyBuilder.appendFormalLine(
+				String.format("%s = new %s();", entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// Getting all defined fields
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+					// Getting fieldName
+					String fieldName = getFieldNameOnActivity(field);
+
+					// Getting mutator method
+					MethodMetadataBuilder mutator = getMutatorMethod(field.getFieldName(), field.getFieldType());
+
+					// entity.setField(fieldName.getText().toString());
+					bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
+							entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+
+				}
+			}
+		}
+
+		// entityDao.create(entity);
+		bodyBuilder.appendFormalLine(String.format("%sDao.create(%s);", entity.getSimpleTypeName().toLowerCase(),
+				entity.getSimpleTypeName().toLowerCase()));
+
+		// }catch (Exception e){
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}catch (Exception e){");
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+	}
+
+	/**
+	 * Method that generates create FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getUpdateMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildUpdateMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("update"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames, bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				String.format("Method to update selected %s item\n", entity.getSimpleTypeName()));
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates update FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildUpdateMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// try {
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+
+		// Dao<Entity, Integer> entityDao = getHelper().getEntityDao();
+		bodyBuilder.appendFormalLine(String.format("%s<%s, Integer> %sDao = getHelper().get%sDao();",
+				new JavaType("com.j256.ormlite.dao.Dao").getNameIncludingTypeParameters(false, importResolver),
+				entity.getSimpleTypeName(), entity.getSimpleTypeName().toLowerCase(), entity.getSimpleTypeName()));
+
+		// Getting all defined fields
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+					// Getting fieldName
+					String fieldName = getFieldNameOnActivity(field);
+
+					// Getting mutator method
+					MethodMetadataBuilder mutator = getMutatorMethod(field.getFieldName(), field.getFieldType());
+
+					// entity.setField(fieldName.getText().toString());
+					bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
+							entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+
+				}
+			}
+		}
+
+		// entityDao.update(entity);
+		bodyBuilder.appendFormalLine(String.format("%sDao.update(%s);", entity.getSimpleTypeName().toLowerCase(),
+				entity.getSimpleTypeName().toLowerCase()));
+
+		// }catch (Exception e){
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}catch (Exception e){");
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
+	}
+
+	/**
 	 * Method that generates onCreateOptionsMenu FormActivity method
 	 * 
 	 * @return
@@ -580,8 +948,6 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
 			if (databaseFieldAnnotation != null) {
 
-				boolean hasReferencedField = false;
-
 				// Checking if field is a generatedId field
 				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
 
@@ -593,31 +959,10 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 				if (!generatedId) {
 
-					// Getting field type
 					JavaType fieldType = field.getFieldType();
-					JavaType formFieldType = null;
-					String fieldViewType = "";
-
-					if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
-						formFieldType = new JavaType("android.widget.Switch");
-						fieldViewType = "switch";
-					} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
-						formFieldType = new JavaType("org.osmdroid.views.MapView");
-						hasGeoField = true;
-						fieldViewType = "mapview";
-					} else if (isReferencedField(field)) {
-						formFieldType = new JavaType("android.widget.Spinner");
-						hasReferencedField = true;
-						fieldViewType = "spinner";
-					} else {
-						formFieldType = new JavaType("android.widget.EditText");
-						fieldViewType = "text";
-					}
-
-					String fieldName = entity.getSimpleTypeName().toLowerCase()
-							+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
-							+ field.getFieldName().getSymbolName().substring(1)
-									.concat(formFieldType.getSimpleTypeName());
+					String fieldName = getFieldNameOnActivity(field);
+					JavaType formFieldType = getFieldTypeOnActivity(field);
+					String fieldViewType = getFieldViewTypeOnActivity(field);
 
 					FieldMetadataBuilder entityField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
 							new JavaSymbolName(fieldName), formFieldType, null);
@@ -632,20 +977,19 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 					// If is a GEO field, is necessary to add an Edit Text
 					// to make some geo search
-					if (hasGeoField) {
-						fieldName = entity.getSimpleTypeName().toLowerCase()
-								+ Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+					if (isGeoField(field)) {
+						fieldName = Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
 								+ field.getFieldName().getSymbolName().substring(1).concat("EditText");
 
 						FieldMetadataBuilder geoField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
 								new JavaSymbolName(fieldName), new JavaType("android.widget.EditText"), null);
 						builder.addField(geoField);
-
+						hasGeoField = true;
 					}
 
 					// If is a referenced field, add ArrayList to include
 					// results
-					if (hasReferencedField) {
+					if (isReferencedField(field)) {
 						fieldName = fieldType.getSimpleTypeName().toLowerCase().concat("List");
 
 						FieldMetadataBuilder relatedField = new FieldMetadataBuilder(getId(), Modifier.PRIVATE,
@@ -676,6 +1020,94 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	}
 
 	/**
+	 * Method that returns field type declared on an activity Java file using
+	 * current entity FieldMetadata
+	 * 
+	 * @param field
+	 *            FieldMetadata that contains all necessary information to
+	 *            obtain field type declared on an activity java file
+	 * @return JavaType that contains declared field type
+	 */
+	public JavaType getFieldTypeOnActivity(FieldMetadata field) {
+		// Getting field type
+		JavaType fieldType = field.getFieldType();
+		JavaType formFieldType = null;
+
+		if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
+			formFieldType = new JavaType("android.widget.Switch");
+		} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+			formFieldType = new JavaType("org.osmdroid.views.MapView");
+		} else if (isReferencedField(field)) {
+			formFieldType = new JavaType("android.widget.Spinner");
+		} else {
+			formFieldType = new JavaType("android.widget.EditText");
+		}
+
+		return formFieldType;
+	}
+
+	/**
+	 * Method that returns field name declared on an activity Java file using
+	 * current entity FieldMetadata.
+	 * 
+	 * @param field
+	 *            FieldMetadata that contains all necessary information to
+	 *            obtain field name declared on an activity Java file
+	 * @return String that contains field name declared.
+	 */
+	public String getFieldNameOnActivity(FieldMetadata field) {
+
+		// Getting field type on activity
+		JavaType formFieldType = getFieldTypeOnActivity(field);
+
+		// Getting fieldName
+		String fieldName = Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+				+ field.getFieldName().getSymbolName().substring(1).concat(formFieldType.getSimpleTypeName());
+
+		return fieldName;
+	}
+
+	/**
+	 * Method that returns field view type declared on an activity Java file
+	 * using current entity FieldMetadata.
+	 * 
+	 * @param field
+	 *            FieldMetadata that contains all necessary information to
+	 *            obtain field view type declared on an activity Java file
+	 * @return String that contains field view type.
+	 */
+	public String getFieldViewTypeOnActivity(FieldMetadata field) {
+		// Getting field type
+		JavaType fieldType = field.getFieldType();
+		String fieldViewType = "";
+
+		if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
+			fieldViewType = "switch";
+		} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+			fieldViewType = "mapview";
+		} else if (isReferencedField(field)) {
+			fieldViewType = "spinner";
+		} else {
+			fieldViewType = "text";
+		}
+
+		return fieldViewType;
+	}
+
+	/**
+	 * Method that returns field name declared on an activity XML file using
+	 * current entity FieldMetadata
+	 * 
+	 * @param field
+	 *            FieldMetadata that contains all necessary information to
+	 *            obtain field name declared on an activity XML file
+	 * @return String that contains field name declared. Doesn't include R class
+	 */
+	public String getFieldNameOnActivityXml(FieldMetadata field) {
+		return null;
+	}
+
+	/**
 	 * Method to check if provided field has @AndrooidReferencedField annotation
 	 * 
 	 * @param field
@@ -683,9 +1115,28 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	 * 
 	 * @return true if is annotated with @AndrooidReferencedField
 	 */
-	private boolean isReferencedField(FieldMetadata field) {
-		AnnotationMetadata annotation = field.getAnnotation(new JavaType(AndrooidReferencedField.class));
+	public boolean isReferencedField(FieldMetadata field) {
+		AnnotationMetadata annotation = field.getAnnotation(
+				new JavaType("io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField"));
 		return annotation != null;
+	}
+
+	/**
+	 * Method to check if provided field is GeoField
+	 * 
+	 * @param field
+	 *            FieldMetadata with the field to check
+	 * 
+	 * @return true if is a valid GeoField
+	 */
+	public boolean isGeoField(FieldMetadata field) {
+		// Getting field type
+		JavaType fieldType = field.getFieldType();
+		if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
