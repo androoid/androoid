@@ -56,6 +56,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	private final List<FieldMetadata> entityFields;
 	private final Map<String, String> fieldNameLayout;
 
+	private boolean hasSpinners;
+
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
 	}
@@ -114,12 +116,18 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		this.entityIdFieldType = entityIdFieldType;
 		this.entityFields = entityFields;
 		this.fieldNameLayout = new HashMap<String, String>();
+		this.hasSpinners = false;
 
 		// Adding fields
 		addFormActivityFields();
 
 		// Adding necessary methods
 		builder.addMethod(getOnCreateMethod());
+		// If some spinners were detected onCreateMethod, is necessary to
+		// include populateSpinners method
+		if (hasSpinners) {
+			builder.addMethod(getPopulateSpinnersMethod());
+		}
 		builder.addMethod(getDisableFormElementsMethod());
 		builder.addMethod(getPopulateFormMethod());
 		builder.addMethod(getCreateMethod());
@@ -202,6 +210,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				isMapView = true;
 			} else if (fieldName.endsWith("Spinner")) {
 				fieldType = "Spinner";
+				hasSpinners = true;
 			}
 
 			// fieldName = (fieldType) findViewById(R.id.fieldId);
@@ -350,7 +359,13 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 		bodyBuilder.appendFormalLine("");
 
-		// TODO: Populate spinners
+		// Populate spinners
+		if (hasSpinners) {
+			bodyBuilder.appendFormalLine("");
+			bodyBuilder.appendFormalLine("// Populate spinners");
+			bodyBuilder.appendFormalLine("populateSpinners();");
+			bodyBuilder.appendFormalLine("");
+		}
 
 		// // Checking if is create view, update view or show view
 		bodyBuilder.appendFormalLine("// Checking if is create view, update view or show view");
@@ -413,6 +428,148 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 		bodyBuilder.indentRemove();
 		bodyBuilder.appendFormalLine("}");
+	}
+
+	/**
+	 * Method that generates populateSpinners FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getPopulateSpinnersMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildPopulateSpinnersMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("populateSpinners"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment("This method will populate all form Spinners \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates populateSpinners FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildPopulateSpinnersMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+
+		// try{
+		bodyBuilder.appendFormalLine("try{");
+		bodyBuilder.indent();
+
+		// Getting all defined fields
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				if (!generatedId) {
+					// Getting fieldName
+					String fieldName = getFieldNameOnActivity(field);
+					JavaType fieldType = getFieldTypeOnActivity(field);
+
+					// Populating all Spinner fields
+					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
+
+						JavaType relatedFieldType = field.getFieldType();
+						String relatedFieldName = relatedFieldType.getSimpleTypeName().toLowerCase();
+
+						// Populate relatedFieldName spinner
+						bodyBuilder.appendFormalLine(String.format("// Populate %s spinner", relatedFieldName));
+
+						// Dao<RelatedField, Integer> relatedFieldDao =
+						// getHelper().getRelatedFieldDao();
+						bodyBuilder.appendFormalLine(String.format("Dao<%s, Integer> %sDao = getHelper().get%sDao();",
+								relatedFieldType.getSimpleTypeName(), relatedFieldName,
+								relatedFieldType.getSimpleTypeName()));
+
+						// List<RelatedFields> results =
+						// relatedFieldDao.queryForAll();
+						bodyBuilder.appendFormalLine(String.format("List<%s> %sResults = %sDao.queryForAll();",
+								relatedFieldType.getSimpleTypeName(), relatedFieldName, relatedFieldName));
+
+						// Creating relatedField ArrayList
+						bodyBuilder.appendFormalLine(String.format("// Creating %s ArrayList", relatedFieldName));
+
+						// relatedFieldList = new ArrayList<RelatedField>();
+						bodyBuilder.appendFormalLine(
+								String.format("%sList = new ArrayList<%s>();", relatedFieldName, relatedFieldType.getSimpleTypeName()));
+
+						// for(RelatedFieldType result : results){
+						bodyBuilder.appendFormalLine(String.format("for(%s result : %s){",
+								relatedFieldType.getSimpleTypeName(), relatedFieldName.concat("Results")));
+						bodyBuilder.indent();
+
+						// relatedFieldList.add(result);
+						bodyBuilder.appendFormalLine(String.format("%sList.add(result);", relatedFieldName));
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+						// // Creating array adapter
+						bodyBuilder.appendFormalLine("// Creating array adapter");
+
+						// ArrayAdapter adapter = new ArrayAdapter(this,
+						// android.R.layout.simple_list_item_1,
+						// relatedFieldList);
+						bodyBuilder
+								.appendFormalLine(String
+										.format("%s %sAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, %sList);",
+												new JavaType("android.widget.ArrayAdapter")
+														.getNameIncludingTypeParameters(false, importResolver),
+										relatedFieldName, relatedFieldName));
+
+						// // Setting adapter on spinner
+						bodyBuilder.appendFormalLine("// Setting adapter on spinner");
+
+						// fieldSpinner.setAdapter(adapter);
+						bodyBuilder.appendFormalLine(String.format("%s.setAdapter(adapter);", fieldName));
+
+						bodyBuilder.appendFormalLine("");
+						bodyBuilder.appendFormalLine("");
+
+					}
+
+				}
+			}
+		}
+
+		// }catch (Exception e){
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}catch (Exception e){");
+		bodyBuilder.indent();
+
+		// e.printStackTrace();
+		bodyBuilder.appendFormalLine("e.printStackTrace();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+
 	}
 
 	/**
