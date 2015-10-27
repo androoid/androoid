@@ -512,7 +512,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 						// List<RelatedFields> results =
 						// relatedFieldDao.queryForAll();
-						bodyBuilder.appendFormalLine(String.format("List<%s> %sResults = %sDao.queryForAll();",
+						bodyBuilder.appendFormalLine(String.format("%s<%s> %sResults = %sDao.queryForAll();",
+								new JavaType("java.util.List").getNameIncludingTypeParameters(false, importResolver),
 								relatedFieldType.getSimpleTypeName(), relatedFieldName, relatedFieldName));
 
 						// Creating relatedField ArrayList
@@ -549,7 +550,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						bodyBuilder.appendFormalLine("// Setting adapter on spinner");
 
 						// fieldSpinner.setAdapter(adapter);
-						bodyBuilder.appendFormalLine(String.format("%s.setAdapter(adapter);", fieldName));
+						bodyBuilder.appendFormalLine(
+								String.format("%s.setAdapter(%sAdapter);", fieldName, relatedFieldName));
 
 						bodyBuilder.appendFormalLine("");
 						bodyBuilder.appendFormalLine("");
@@ -865,8 +867,17 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 					// Checking Spinners
 					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
-						// entity.setField(fieldName.getSelectedItem());
-						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getSelectedItem());",
+
+						JavaType relatedFieldType = field.getFieldType();
+
+						// entity.setField((RelatedFieldType)
+						// fieldName.getSelectedItem());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((%s) %s.getSelectedItem());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(),
+								relatedFieldType.getSimpleTypeName(), fieldName));
+					} else if (isNumericField(field)) {
+						// entity.setField(fieldName.getText().toString());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(Integer.parseInt(%s.getText().toString()));",
 								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
 					} else {
 						// entity.setField(fieldName.getText().toString());
@@ -968,8 +979,17 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 
 					// Checking Spinners
 					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
-						// entity.setField(fieldName.getSelectedItem());
-						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getSelectedItem());",
+
+						JavaType relatedFieldType = field.getFieldType();
+
+						// entity.setField((RelatedFieldType)
+						// fieldName.getSelectedItem());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((%s) %s.getSelectedItem());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(),
+								relatedFieldType.getSimpleTypeName(), fieldName));
+					} else if (isNumericField(field)) {
+						// entity.setField(fieldName.getText().toString());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(Integer.parseInt(%s.getText().toString()));",
 								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
 					} else {
 						// entity.setField(fieldName.getText().toString());
@@ -1353,6 +1373,25 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		// Getting field type
 		JavaType fieldType = field.getFieldType();
 		if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Method to check if provided field is numeric field
+	 * 
+	 * @param field
+	 *            FieldMetadata with the field to check
+	 * 
+	 * @return true if is a valid number field
+	 */
+	public boolean isNumericField(FieldMetadata field) {
+
+		JavaType fieldType = field.getFieldType();
+
+		if (fieldType.equals(JavaType.INT_PRIMITIVE) || fieldType.equals(JavaType.INT_OBJECT)) {
 			return true;
 		}
 
