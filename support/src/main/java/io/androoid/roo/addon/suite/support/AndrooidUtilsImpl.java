@@ -15,7 +15,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.process.manager.FileManager;
-import org.springframework.roo.process.manager.MutableFile;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.ProjectOperations;
@@ -28,7 +27,7 @@ import org.w3c.dom.Node;
 
 /**
  * 
- * Implementation of {@AndrooidOperationsUtils} utility class
+ * Implementation of {@AndrooidUtils} utility class
  * 
  * @author Juan Carlos García
  * @since 1.0
@@ -36,7 +35,7 @@ import org.w3c.dom.Node;
  */
 @Component
 @Service
-public class AndrooidOperationsUtilsImpl implements AndrooidOperationsUtils {
+public class AndrooidUtilsImpl implements AndrooidUtils {
 
 	/**
 	 * Updates files in source path into target directory path. <strong>Useful

@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.process.manager.FileManager;
-import org.springframework.roo.process.manager.MutableFile;
 import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.ProjectOperations;
 import org.w3c.dom.Document;
@@ -17,7 +16,7 @@ import org.w3c.dom.Element;
  * @author Juan Carlos García
  * @since 1.0
  */
-public interface AndrooidOperationsUtils {
+public interface AndrooidUtils {
 
 	/**
 	 * Updates files in source path into target directory path. <strong>Useful
