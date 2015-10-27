@@ -53,7 +53,7 @@ import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidListActi
 import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidMainActivity;
 import io.androoid.roo.addon.suite.addon.entities.annotations.AndrooidEntity;
 import io.androoid.roo.addon.suite.addon.manifest.manager.AndrooidManifestOperations;
-import io.androoid.roo.addon.suite.support.AndrooidOperationsUtils;
+import io.androoid.roo.addon.suite.support.AndrooidUtils;
 
 /**
  * Implementation of {@link AndrooidActivitiesOperations} interface.
@@ -79,7 +79,7 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 	@Reference
 	private PathResolver pathResolver;
 	@Reference
-	private AndrooidOperationsUtils operationsUtils;
+	private AndrooidUtils operationsUtils;
 	@Reference
 	private AndrooidManifestOperations manifestOperations;
 	@Reference

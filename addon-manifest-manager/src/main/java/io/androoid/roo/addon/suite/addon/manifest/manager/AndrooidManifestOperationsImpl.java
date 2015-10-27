@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.androoid.roo.addon.suite.support.AndrooidOperationsUtils;
+import io.androoid.roo.addon.suite.support.AndrooidUtils;
 
 /**
  * Implementation of {@link AndrooidManifestOperations} interface.
@@ -49,7 +49,7 @@ public class AndrooidManifestOperationsImpl implements AndrooidManifestOperation
 	@Reference
 	private PathResolver pathResolver;
 	@Reference
-	private AndrooidOperationsUtils operationsUtils;
+	private AndrooidUtils operationsUtils;
 
 	/** {@inheritDoc} */
 	public void createAndroidManifestFile(JavaPackage applicationPackage) {
