@@ -519,8 +519,8 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						bodyBuilder.appendFormalLine(String.format("// Creating %s ArrayList", relatedFieldName));
 
 						// relatedFieldList = new ArrayList<RelatedField>();
-						bodyBuilder.appendFormalLine(
-								String.format("%sList = new ArrayList<%s>();", relatedFieldName, relatedFieldType.getSimpleTypeName()));
+						bodyBuilder.appendFormalLine(String.format("%sList = new ArrayList<%s>();", relatedFieldName,
+								relatedFieldType.getSimpleTypeName()));
 
 						// for(RelatedFieldType result : results){
 						bodyBuilder.appendFormalLine(String.format("for(%s result : %s){",
@@ -716,13 +716,60 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				if (!generatedId) {
 					// Getting fieldName
 					String fieldName = getFieldNameOnActivity(field);
-
+					JavaType fieldType = getFieldTypeOnActivity(field);
 					// Getting accessor method
 					MethodMetadataBuilder accessor = getAccessorMethod(field);
 
-					// fieldName.setText(entity.getField());
-					bodyBuilder.appendFormalLine(String.format("%s.setText(%s.%s());", fieldName,
-							entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+					// Checking Spinners
+					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
+
+						JavaType relatedFieldType = field.getFieldType();
+						String relatedFieldName = relatedFieldType.getSimpleTypeName().toLowerCase();
+
+						// ArrayAdapter fieldAdapter = (ArrayAdapter)
+						// spinner.getAdapter();
+						bodyBuilder.appendFormalLine(
+								String.format("ArrayAdapter %sAdapter = (ArrayAdapter) %s.getAdapter();",
+										relatedFieldName, fieldName));
+
+						// int relatedFieldPosition = -1;
+						bodyBuilder.appendFormalLine(String.format("int %sPosition = -1;", relatedFieldName));
+
+						// for(int i = 0; i < adapter.getCount(); i++){
+						bodyBuilder.appendFormalLine(
+								String.format("for(int i = 0; i < %sAdapter.getCount(); i++){", relatedFieldName));
+						bodyBuilder.indent();
+
+						// RelatedField item = (RelatedField)
+						// adapter.getItem(i);
+						bodyBuilder.appendFormalLine(String.format("%s item = (%s) %sAdapter.getItem(i);",
+								relatedFieldType.getSimpleTypeName(), relatedFieldType.getSimpleTypeName(),
+								relatedFieldName));
+
+						// if(item.getId().equals(entity.getField().getId())){
+						bodyBuilder.appendFormalLine(String.format("if(item.getId().equals(%s.%s().getId())){",
+								entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+						bodyBuilder.indent();
+
+						// relatedFieldPosition = i;
+						bodyBuilder.appendFormalLine(String.format("%sPosition = i;", relatedFieldName));
+						bodyBuilder.appendFormalLine("break;");
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+						// field.setSelection(relatedFieldPosition);
+						bodyBuilder.appendFormalLine(
+								String.format("%s.setSelection(%sPosition);", fieldName, relatedFieldName));
+
+					} else {
+						// fieldName.setText(entity.getField());
+						bodyBuilder.appendFormalLine(String.format("%s.setText(%s.%s());", fieldName,
+								entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+					}
 
 				}
 			}
@@ -811,13 +858,21 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				if (!generatedId) {
 					// Getting fieldName
 					String fieldName = getFieldNameOnActivity(field);
+					JavaType fieldType = getFieldTypeOnActivity(field);
 
 					// Getting mutator method
 					MethodMetadataBuilder mutator = getMutatorMethod(field.getFieldName(), field.getFieldType());
 
-					// entity.setField(fieldName.getText().toString());
-					bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
-							entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					// Checking Spinners
+					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
+						// entity.setField(fieldName.getSelectedItem());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getSelectedItem());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					} else {
+						// entity.setField(fieldName.getText().toString());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					}
 
 				}
 			}
@@ -906,13 +961,21 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				if (!generatedId) {
 					// Getting fieldName
 					String fieldName = getFieldNameOnActivity(field);
+					JavaType fieldType = getFieldTypeOnActivity(field);
 
 					// Getting mutator method
 					MethodMetadataBuilder mutator = getMutatorMethod(field.getFieldName(), field.getFieldType());
 
-					// entity.setField(fieldName.getText().toString());
-					bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
-							entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					// Checking Spinners
+					if (fieldType.equals(new JavaType("android.widget.Spinner"))) {
+						// entity.setField(fieldName.getSelectedItem());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getSelectedItem());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					} else {
+						// entity.setField(fieldName.getText().toString());
+						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					}
 
 				}
 			}
