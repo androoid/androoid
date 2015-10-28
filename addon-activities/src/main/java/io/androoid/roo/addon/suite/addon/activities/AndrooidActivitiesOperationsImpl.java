@@ -315,11 +315,28 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 								+ "Only Androoid Entity classes could be used to generate new Androoid Activities.",
 						entity.getSimpleTypeName()));
 
+		String entityName = entity.getSimpleTypeName();
+
 		// Generate new List activity
 		addListActivity(entity);
 
+		// Add ListActivity to AndroidManifest.xml
+		String listActivityName = ".activities.".concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("ListActivity");
+		Element listActivity = manifestOperations.addActivity(listActivityName,
+				String.format("@string/title_activity_%s", entityName.toLowerCase()), "orientation", "portrait");
+		manifestOperations.addMetadataToActivity(listActivity, "android.support.PARENT_ACTIVITY",
+				".activities.MainActivity");
+
 		// Generate new Form activity
 		addFormActivity(entity);
+
+		// Add FormActivity to AndroidManifest.xml
+		String formActivityName = ".activities.".concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("FormActivity");
+		Element formActivity = manifestOperations.addActivity(formActivityName,
+				String.format("@string/title_activity_%s_form", entityName.toLowerCase()), "orientation", "portrait");
+		manifestOperations.addMetadataToActivity(formActivity, "android.support.PARENT_ACTIVITY", listActivityName);
 
 		// Add new activity button to main view
 		// addActivityToMainView(entity);
