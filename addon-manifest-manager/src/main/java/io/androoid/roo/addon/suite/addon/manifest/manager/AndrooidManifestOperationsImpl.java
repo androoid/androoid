@@ -236,4 +236,41 @@ public class AndrooidManifestOperationsImpl implements AndrooidManifestOperation
 			e.printStackTrace();
 		}
 	}
+
+	/** {@inheritDoc} */
+	public void addMetadataToActivity(Element activity, String name, String value) {
+		try {
+			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
+			Document androidManifestXml = XmlUtils.getDocumentBuilder()
+					.parse(androidManifestXmlMutableFile.getInputStream());
+
+			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+
+			if (applicationElements.getLength() < 0) {
+				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
+			}
+
+			// Getting first application element
+			Element applicationElement = (Element) applicationElements.item(0);
+
+			NodeList allChilds = applicationElement.getChildNodes();
+			for (int i = 0; i < allChilds.getLength(); i++) {
+				Node child = allChilds.item(i);
+
+				if (child.isEqualNode(activity)) {
+					Element metaData = androidManifestXml.createElement("meta-data");
+					metaData.setAttribute("android:name", name);
+					metaData.setAttribute("android:value", value);
+
+					// Append meta-daa element to current activity
+					child.appendChild(metaData);
+				}
+			}
+
+			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

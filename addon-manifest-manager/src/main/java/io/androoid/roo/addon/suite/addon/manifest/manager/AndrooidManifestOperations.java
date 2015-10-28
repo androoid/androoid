@@ -79,4 +79,14 @@ public interface AndrooidManifestOperations {
 	 */
 	void addIntentFilterToActivity(Element activity, String actionName, String categoryName);
 
+	/**
+	 * Adds meta-data sub-element to an activity element declared on
+	 * AndroidManifest.xml file
+	 * 
+	 * @param activity
+	 * @param name
+	 * @param value
+	 */
+	void addMetadataToActivity(Element activity, String name, String value);
+
 }
