@@ -322,32 +322,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		// Generate new List activity
 		addListActivity(entity);
 
-		// Add ListActivity to AndroidManifest.xml
-		/*
-		 * String listActivityName =
-		 * ".activities.".concat(entityName.toLowerCase()).concat(".").concat(
-		 * entityName) .concat("ListActivity"); Element listActivity =
-		 * manifestOperations.addActivity(listActivityName,
-		 * String.format("@string/title_activity_%s", entityName.toLowerCase()),
-		 * "orientation", "portrait");
-		 * manifestOperations.addMetadataToActivity(listActivity,
-		 * "android.support.PARENT_ACTIVITY", ".activities.MainActivity");
-		 */
-
 		// Generate new Form activity
 		addFormActivity(entity);
-
-		// Add FormActivity to AndroidManifest.xml
-		/*
-		 * String formActivityName =
-		 * ".activities.".concat(entityName.toLowerCase()).concat(".").concat(
-		 * entityName) .concat("FormActivity"); Element formActivity =
-		 * manifestOperations.addActivity(formActivityName,
-		 * String.format("@string/title_activity_%s_form",
-		 * entityName.toLowerCase()), "orientation", "portrait");
-		 * manifestOperations.addMetadataToActivity(formActivity,
-		 * "android.support.PARENT_ACTIVITY", listActivityName);
-		 */
 
 		// Add new activity button to main view
 		// addActivityToMainView(entity);
@@ -407,6 +383,13 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		cidBuilder.addMethod(getOnItemClickMethod(declaredByMetadataId, entity));
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+
+		// Add ListActivity to AndroidManifest.xml
+		Element listActivityElement = manifestOperations.addActivity(listActivityName,
+				String.format("@string/title_activity_%s", entityName.toLowerCase()), "orientation", "portrait");
+		manifestOperations.addMetadataToActivity(listActivityElement, "android.support.PARENT_ACTIVITY",
+				".activities.MainActivity");
+
 	}
 
 	/**
@@ -450,10 +433,22 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
 		// Add implements AsyncGeoResponse if has some Geo Field
 		if (hasGeoField(entity)) {
-			cidBuilder.addImplementsType(new JavaType("io.androoid.libraryproof.utils.AsyncGeoResponse"));
+			cidBuilder.addImplementsType(new JavaType("io.androoid.geo.search.AsyncGeoResponse"));
+
+			// Adding processFinish method
+			cidBuilder.addMethod(getProcessFinishMethod(declaredByMetadataId, entity));
 		}
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+
+		// Add FormActivity to AndroidManifest.xml
+		String listActivityName = projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
+				.concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
+				.concat("ListActivity");
+		Element formActivityElement = manifestOperations.addActivity(formActivityName,
+				String.format("@string/title_activity_%s_form", entityName.toLowerCase()), "orientation", "portrait");
+		manifestOperations.addMetadataToActivity(formActivityElement, "android.support.PARENT_ACTIVITY",
+				listActivityName);
 	}
 
 	/**
@@ -743,6 +738,47 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 						+ "                will be a view provided by the adapter) \n"
 						+ "@param position The position of the view in the adapter. \n"
 						+ "@param id       The row id of the item that was clicked. \n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Method that generates processFinish FormActivity method
+	 * 
+	 * @param declaredByMetadataId
+	 * @param entity
+	 *            JavaType with the current entity to use
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getProcessFinishMethod(String declaredByMetadataId, JavaType entity) {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("org.osmdroid.util.GeoPoint")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("output"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		// Invoke .aj method with necessary implementation
+		bodyBuilder.appendFormalLine(String.format("processFinish%s(output);", entity.getSimpleTypeName()));
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				new JavaSymbolName("processFinish"), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+		methodBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("Override")));
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Method that will be executed before AsyncGeoTasks\n\n@param output\n");
 		commentStructure.addComment(comment, CommentLocation.BEGINNING);
 		methodBuilder.setCommentStructure(commentStructure);
 

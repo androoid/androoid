@@ -49,14 +49,11 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	private final ImportRegistrationResolver importResolver;
 	private final JavaType entity;
 	private final JavaPackage applicationPackage;
-	private final JavaType listEntityJavaType;
-	private final JavaType arrayListEntityJavaType;
-	private final String getIdFieldMethod;
-	private final JavaType entityIdFieldType;
 	private final List<FieldMetadata> entityFields;
 	private final Map<String, String> fieldNameLayout;
 
 	private boolean hasSpinners;
+	private boolean hasGeoFields;
 
 	public static String createIdentifier(final JavaType javaType, final LogicalPath path) {
 		return PhysicalTypeIdentifierNamingUtils.createIdentifier(PROVIDES_TYPE_STRING, javaType, path);
@@ -108,15 +105,10 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		this.importResolver = builder.getImportRegistrationResolver();
 		this.entity = entity;
 		this.applicationPackage = projectPackage;
-		this.listEntityJavaType = new JavaType("java.util.List", 0, DataType.TYPE, null, Arrays.asList(entity));
-		this.arrayListEntityJavaType = new JavaType("java.util.ArrayList", 0, DataType.TYPE, null,
-				Arrays.asList(entity));
-		this.getIdFieldMethod = "get"
-				.concat(Character.toUpperCase(entityIdFieldName.charAt(0)) + entityIdFieldName.substring(1));
-		this.entityIdFieldType = entityIdFieldType;
 		this.entityFields = entityFields;
 		this.fieldNameLayout = new HashMap<String, String>();
 		this.hasSpinners = false;
+		this.hasGeoFields = false;
 
 		// Adding fields
 		addFormActivityFields();
@@ -134,6 +126,11 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 		builder.addMethod(getUpdateMethod());
 		builder.addMethod(getOnCreateOptionsMenuMethod());
 		builder.addMethod(getOnOptionsItemSelectedMethod());
+
+		// If has some GEO field means that should Override ProcessFinish method
+		if (hasGeoFields) {
+			builder.addMethod(getProcessFinishMethod());
+		}
 
 		// Create a representation of the desired output ITD
 		itdTypeDetails = builder.build();
@@ -208,6 +205,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 			} else if (fieldName.endsWith("MapView")) {
 				fieldType = "MapView";
 				isMapView = true;
+				hasGeoFields = true;
 			} else if (fieldName.endsWith("Spinner")) {
 				fieldType = "Spinner";
 				hasSpinners = true;
@@ -221,7 +219,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 			if (isMapView) {
 
 				// Including mapview text
-				String textFieldName = fieldName.replaceFirst("MapView", "EdiText");
+				String textFieldName = fieldName.replaceFirst("MapView", "EditText");
 
 				// fieldName = (fieldType) findViewById(R.id.fieldId);
 				fieldId = fieldId.substring(0, fieldId.lastIndexOf("_")).concat("_text");
@@ -812,7 +810,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						// ItemizedIconOverlay<OverlayItem>(items,
 						bodyBuilder.appendFormalLine(String.format(
 								"%s<OverlayItem> mMyLocationOverlay = new ItemizedIconOverlay<OverlayItem>(items,",
-								new JavaType("org.osmdroid.views.overlay.ItemizedOverlay")
+								new JavaType("org.osmdroid.views.overlay.ItemizedIconOverlay")
 										.getNameIncludingTypeParameters(false, importResolver)));
 						bodyBuilder.indent();
 
@@ -1427,6 +1425,189 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 			builder.addField(geoSearchHelper);
 		}
 
+	}
+
+	/**
+	 * Method that generates processFinish FormActivity method
+	 * 
+	 * @return
+	 */
+	private MethodMetadataBuilder getProcessFinishMethod() {
+		// Define method parameter types
+		List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
+		parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("org.osmdroid.util.GeoPoint")));
+
+		// Define method parameter names
+		List<JavaSymbolName> parameterNames = new ArrayList<JavaSymbolName>();
+		parameterNames.add(new JavaSymbolName("output"));
+
+		// Create the method body
+		InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+
+		buildProcessFinishMethodBody(bodyBuilder);
+
+		// Use the MethodMetadataBuilder for easy creation of MethodMetadata
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(getId(), Modifier.PUBLIC,
+				new JavaSymbolName("processFinish".concat(entity.getSimpleTypeName())), JavaType.VOID_PRIMITIVE, parameterTypes, parameterNames,
+				bodyBuilder);
+
+		// Including comments
+		CommentStructure commentStructure = new CommentStructure();
+		JavadocComment comment = new JavadocComment(
+				"Method that will be executed before AsyncGeoTasks\n\n@param output\n");
+		commentStructure.addComment(comment, CommentLocation.BEGINNING);
+		methodBuilder.setCommentStructure(commentStructure);
+
+		return methodBuilder; // Build and return a MethodMetadata
+		// instance
+	}
+
+	/**
+	 * Generates processFinish FormActivity method body
+	 * 
+	 * @param bodyBuilder
+	 */
+	private void buildProcessFinishMethodBody(InvocableMemberBodyBuilder bodyBuilder) {
+		// Adding fields on current form activity
+		for (FieldMetadata field : entityFields) {
+
+			// Checking if current field is a valid Database Field
+			AnnotationMetadata databaseFieldAnnotation = field
+					.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+			if (databaseFieldAnnotation != null) {
+
+				// Checking if field is a generatedId field
+				AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation.getAttribute("generatedId");
+
+				boolean generatedId = false;
+
+				if (generatedIdAttr != null) {
+					generatedId = generatedIdAttr.getValue();
+				}
+
+				// Check if is GEO field
+				if (!generatedId && isGeoField(field)) {
+					String fieldName = getFieldNameOnActivity(field);
+					String textFieldName = fieldName.replaceFirst("MapView", "EditText");
+
+					// field.getOverlays().clear();
+					bodyBuilder.appendFormalLine(String.format("%s.getOverlays().clear();", fieldName));
+
+					// if(output == null){
+					bodyBuilder.appendFormalLine("if(output == null){");
+					bodyBuilder.indent();
+
+					// fieldText.setBackgroundColor(Color.parseColor("#ff9090"));
+					bodyBuilder.appendFormalLine(String.format("%s.setBackgroundColor(%s.parseColor(\"#ff9090\"));",
+							textFieldName, new JavaType("android.graphics.Color").getNameIncludingTypeParameters(false,
+									importResolver)));
+
+					// return;
+					bodyBuilder.appendFormalLine("return;");
+					bodyBuilder.indentRemove();
+
+					// }else{
+					bodyBuilder.appendFormalLine("}else{");
+					bodyBuilder.indent();
+
+					// fieldText.setBackgroundColor(Color.WHITE);
+					bodyBuilder.appendFormalLine(String.format("%s.setBackgroundColor(Color.WHITE);", textFieldName));
+
+					bodyBuilder.indentRemove();
+					bodyBuilder.appendFormalLine("}");
+
+					// ArrayList<OverlayItem> items = new
+					// ArrayList<OverlayItem>();
+					bodyBuilder.appendFormalLine(" ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();");
+
+					// // Adding items
+					bodyBuilder.appendFormalLine("// Adding items");
+
+					// items.add(new OverlayItem("", "", output));
+					bodyBuilder.appendFormalLine("items.add(new OverlayItem(\"\", \"\", output));");
+
+					// /* OnTapListener for the Markers, shows a simple
+					// Toast. */
+					bodyBuilder.appendFormalLine("/* OnTapListener for the Markers, shows a simple Toast. */");
+
+					// ItemizedOverlay<OverlayItem> mMyLocationOverlay = new
+					// ItemizedIconOverlay<OverlayItem>(items,
+					bodyBuilder.appendFormalLine(String.format(
+							"%s<OverlayItem> mMyLocationOverlay = new ItemizedIconOverlay<OverlayItem>(items,",
+							new JavaType("org.osmdroid.views.overlay.ItemizedIconOverlay")
+									.getNameIncludingTypeParameters(false, importResolver)));
+					bodyBuilder.indent();
+
+					// new
+					// ItemizedIconOverlay.OnItemGestureListener<OverlayItem>()
+					// {
+					bodyBuilder.appendFormalLine(
+							String.format("new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {"));
+					bodyBuilder.indent();
+
+					// @Override
+					bodyBuilder.appendFormalLine("@Override");
+
+					// public boolean onItemSingleTapUp(final int index,
+					// final OverlayItem item) {
+					bodyBuilder.appendFormalLine(
+							"public boolean onItemSingleTapUp(final int index, final OverlayItem item) {");
+					bodyBuilder.indent();
+
+					// return true; // We 'handled' this event.
+					bodyBuilder.appendFormalLine("return true; // We 'handled' this event.");
+
+					bodyBuilder.indentRemove();
+					bodyBuilder.appendFormalLine("}");
+
+					// @Override
+					bodyBuilder.appendFormalLine("@Override");
+
+					// public boolean onItemLongPress(final int index, final
+					// OverlayItem item) {
+					bodyBuilder.appendFormalLine(
+							"public boolean onItemLongPress(final int index, final OverlayItem item) {");
+					bodyBuilder.indent();
+
+					// return false;
+					bodyBuilder.appendFormalLine("return false;");
+
+					bodyBuilder.indentRemove();
+					bodyBuilder.appendFormalLine("}");
+
+					// }, new
+					// DefaultResourceProxyImpl(getApplicationContext()));
+					bodyBuilder.indentRemove();
+					bodyBuilder.appendFormalLine(String.format("}, new %s(getApplicationContext()));",
+							new JavaType("org.osmdroid.DefaultResourceProxyImpl").getNameIncludingTypeParameters(false,
+									importResolver)));
+
+					bodyBuilder.indentRemove();
+
+					// field.getOverlays().add(mMyLocationOverlay);
+					bodyBuilder.appendFormalLine(String.format("%s.getOverlays().add(mMyLocationOverlay);", fieldName));
+
+					// field.invalidate();
+					bodyBuilder.appendFormalLine(String.format("%s.invalidate();", fieldName));
+
+					// // Initial map position
+					bodyBuilder.appendFormalLine("// Initial map position");
+
+					// IMapController mapController = field.getController();
+					bodyBuilder.appendFormalLine(String.format("%s mapController = %s.getController();",
+							new JavaType("org.osmdroid.api.IMapController").getNameIncludingTypeParameters(false,
+									importResolver),
+							fieldName));
+
+					// mapController.setZoom(15);
+					bodyBuilder.appendFormalLine("mapController.setZoom(15);");
+
+					// mapController.setCenter(output);
+					bodyBuilder.appendFormalLine("mapController.setCenter(output);");
+
+				}
+			}
+		}
 	}
 
 	/**
