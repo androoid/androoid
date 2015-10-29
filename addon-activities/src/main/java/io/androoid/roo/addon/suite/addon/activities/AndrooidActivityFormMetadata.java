@@ -635,6 +635,14 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 				if (!generatedId) {
 					// Getting fieldName
 					String fieldName = getFieldNameOnActivity(field);
+
+					// Checking MapView elements
+					if (isGeoField(field)) {
+						String auxFieldName = Character.toLowerCase(field.getFieldName().getSymbolName().charAt(0))
+								+ field.getFieldName().getSymbolName().substring(1).concat("EditText");
+						bodyBuilder.appendFormalLine(String.format("%s.setEnabled(false);", auxFieldName));
+					}
+
 					bodyBuilder.appendFormalLine(String.format("%s.setEnabled(false);", fieldName));
 				}
 			}
@@ -767,6 +775,128 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						bodyBuilder.appendFormalLine(
 								String.format("%s.setSelection(%sPosition);", fieldName, relatedFieldName));
 
+					} else if (isGeoField(field)) {
+						// Checking if is a GEO field
+
+						// // Populate map elements if exists
+						bodyBuilder.appendFormalLine("// Populate map elements if exists");
+
+						// if(accessorResult != null){
+						bodyBuilder.appendFormalLine(String.format("if(%s.%s() != null){",
+								entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+						bodyBuilder.indent();
+
+						// ArrayList<OverlayItem> items = new
+						// ArrayList<OverlayItem>();
+						bodyBuilder.appendFormalLine(String.format("%s<%s> items = new ArrayList<OverlayItem>();",
+								new JavaType("java.util.ArrayList").getNameIncludingTypeParameters(false,
+										importResolver),
+								new JavaType("org.osmdroid.views.overlay.OverlayItem")
+										.getNameIncludingTypeParameters(false, importResolver)));
+
+						// // Adding items
+						bodyBuilder.appendFormalLine("// Adding items");
+
+						// items.add(new OverlayItem(entity.toString(), "",
+						// accessor));
+						bodyBuilder.appendFormalLine(
+								String.format("items.add(new OverlayItem(%s.toString(), \"\", %s.%s()));",
+										entity.getSimpleTypeName().toLowerCase(),
+										entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+
+						// /* OnTapListener for the Markers, shows a simple
+						// Toast. */
+						bodyBuilder.appendFormalLine("/* OnTapListener for the Markers, shows a simple Toast. */");
+
+						// ItemizedOverlay<OverlayItem> mMyLocationOverlay = new
+						// ItemizedIconOverlay<OverlayItem>(items,
+						bodyBuilder.appendFormalLine(String.format(
+								"%s<OverlayItem> mMyLocationOverlay = new ItemizedIconOverlay<OverlayItem>(items,",
+								new JavaType("org.osmdroid.views.overlay.ItemizedOverlay")
+										.getNameIncludingTypeParameters(false, importResolver)));
+						bodyBuilder.indent();
+
+						// new
+						// ItemizedIconOverlay.OnItemGestureListener<OverlayItem>()
+						// {
+						bodyBuilder.appendFormalLine(
+								String.format("new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {"));
+						bodyBuilder.indent();
+
+						// @Override
+						bodyBuilder.appendFormalLine("@Override");
+
+						// public boolean onItemSingleTapUp(final int index,
+						// final OverlayItem item) {
+						bodyBuilder.appendFormalLine(
+								"public boolean onItemSingleTapUp(final int index, final OverlayItem item) {");
+						bodyBuilder.indent();
+
+						// return true; // We 'handled' this event.
+						bodyBuilder.appendFormalLine("return true; // We 'handled' this event.");
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+						// @Override
+						bodyBuilder.appendFormalLine("@Override");
+
+						// public boolean onItemLongPress(final int index, final
+						// OverlayItem item) {
+						bodyBuilder.appendFormalLine(
+								"public boolean onItemLongPress(final int index, final OverlayItem item) {");
+						bodyBuilder.indent();
+
+						// return false;
+						bodyBuilder.appendFormalLine("return false;");
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+						// }, new
+						// DefaultResourceProxyImpl(getApplicationContext()));
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine(String.format("}, new %s(getApplicationContext()));",
+								new JavaType("org.osmdroid.DefaultResourceProxyImpl")
+										.getNameIncludingTypeParameters(false, importResolver)));
+
+						bodyBuilder.indentRemove();
+
+						// field.getOverlays().add(mMyLocationOverlay);
+						bodyBuilder.appendFormalLine(
+								String.format("%s.getOverlays().add(mMyLocationOverlay);", fieldName));
+
+						// field.invalidate();
+						bodyBuilder.appendFormalLine(String.format("%s.invalidate();", fieldName));
+
+						// // Initial map position
+						bodyBuilder.appendFormalLine("// Initial map position");
+
+						// IMapController mapController = field.getController();
+						bodyBuilder
+								.appendFormalLine(
+										String.format("%s mapController = %s.getController();",
+												new JavaType("org.osmdroid.api.IMapController")
+														.getNameIncludingTypeParameters(false, importResolver),
+										fieldName));
+
+						// mapController.setZoom(15);
+						bodyBuilder.appendFormalLine("mapController.setZoom(15);");
+
+						// mapController.setCenter(accessor);
+						bodyBuilder.appendFormalLine(String.format("mapController.setCenter(%s.%s());",
+								entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+					} else if (fieldType.equals(new JavaType("android.widget.Switch"))) {
+						// Check if is a boolean field
+
+						// fieldName.setChecked(entity.getField());
+						bodyBuilder.appendFormalLine(String.format("%s.setChecked(%s.%s());", fieldName,
+								entity.getSimpleTypeName().toLowerCase(), accessor.getMethodName()));
+
 					} else {
 						// fieldName.setText(entity.getField());
 						bodyBuilder.appendFormalLine(String.format("%s.setText(%s.%s());", fieldName,
@@ -879,6 +1009,26 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 						// entity.setField(fieldName.getText().toString());
 						bodyBuilder.appendFormalLine(String.format("%s.%s(Integer.parseInt(%s.getText().toString()));",
 								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					} else if (isGeoField(field)) {
+						// Check if is GEO Field
+
+						// if(field.getOverlays().size() > 0){
+						bodyBuilder.appendFormalLine(String.format("if(%s.getOverlays().size() > 0){", fieldName));
+						bodyBuilder.indent();
+
+						// entity.setField((GeoPoint) field.getMapCenter());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((GeoPoint) %s.getMapCenter());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+					} else if (fieldType.equals(new JavaType("android.widget.Switch"))) {
+						// Check if is a boolean field
+
+						// entity.setField((boolean) field.isChecked());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((boolean) %s.isChecked());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
 					} else {
 						// entity.setField(fieldName.getText().toString());
 						bodyBuilder.appendFormalLine(String.format("%s.%s(%s.getText().toString());",
@@ -990,6 +1140,26 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 					} else if (isNumericField(field)) {
 						// entity.setField(fieldName.getText().toString());
 						bodyBuilder.appendFormalLine(String.format("%s.%s(Integer.parseInt(%s.getText().toString()));",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+					} else if (isGeoField(field)) {
+						// Check if is GEO Field
+
+						// if(field.getOverlays().size() > 0){
+						bodyBuilder.appendFormalLine(String.format("if(%s.getOverlays().size() > 0){", fieldName));
+						bodyBuilder.indent();
+
+						// entity.setField((GeoPoint) field.getMapCenter());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((GeoPoint) %s.getMapCenter());",
+								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
+
+						bodyBuilder.indentRemove();
+						bodyBuilder.appendFormalLine("}");
+
+					} else if (fieldType.equals(new JavaType("android.widget.Switch"))) {
+						// Check if is a boolean field
+
+						// entity.setField((boolean) field.isChecked());
+						bodyBuilder.appendFormalLine(String.format("%s.%s((boolean) %s.isChecked());",
 								entity.getSimpleTypeName().toLowerCase(), mutator.getMethodName(), fieldName));
 					} else {
 						// entity.setField(fieldName.getText().toString());

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.Validate;
@@ -21,6 +22,7 @@ import org.springframework.roo.classpath.TypeLocationService;
 import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.MethodMetadata;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
@@ -321,22 +323,31 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		addListActivity(entity);
 
 		// Add ListActivity to AndroidManifest.xml
-		String listActivityName = ".activities.".concat(entityName.toLowerCase()).concat(".").concat(entityName)
-				.concat("ListActivity");
-		Element listActivity = manifestOperations.addActivity(listActivityName,
-				String.format("@string/title_activity_%s", entityName.toLowerCase()), "orientation", "portrait");
-		manifestOperations.addMetadataToActivity(listActivity, "android.support.PARENT_ACTIVITY",
-				".activities.MainActivity");
+		/*
+		 * String listActivityName =
+		 * ".activities.".concat(entityName.toLowerCase()).concat(".").concat(
+		 * entityName) .concat("ListActivity"); Element listActivity =
+		 * manifestOperations.addActivity(listActivityName,
+		 * String.format("@string/title_activity_%s", entityName.toLowerCase()),
+		 * "orientation", "portrait");
+		 * manifestOperations.addMetadataToActivity(listActivity,
+		 * "android.support.PARENT_ACTIVITY", ".activities.MainActivity");
+		 */
 
 		// Generate new Form activity
 		addFormActivity(entity);
 
 		// Add FormActivity to AndroidManifest.xml
-		String formActivityName = ".activities.".concat(entityName.toLowerCase()).concat(".").concat(entityName)
-				.concat("FormActivity");
-		Element formActivity = manifestOperations.addActivity(formActivityName,
-				String.format("@string/title_activity_%s_form", entityName.toLowerCase()), "orientation", "portrait");
-		manifestOperations.addMetadataToActivity(formActivity, "android.support.PARENT_ACTIVITY", listActivityName);
+		/*
+		 * String formActivityName =
+		 * ".activities.".concat(entityName.toLowerCase()).concat(".").concat(
+		 * entityName) .concat("FormActivity"); Element formActivity =
+		 * manifestOperations.addActivity(formActivityName,
+		 * String.format("@string/title_activity_%s_form",
+		 * entityName.toLowerCase()), "orientation", "portrait");
+		 * manifestOperations.addMetadataToActivity(formActivity,
+		 * "android.support.PARENT_ACTIVITY", listActivityName);
+		 */
 
 		// Add new activity button to main view
 		// addActivityToMainView(entity);
@@ -436,6 +447,11 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 				null, Arrays.asList(new JavaType(projectOperations.getFocusedTopLevelPackage()
 						.getFullyQualifiedPackageName().concat(".utils.DatabaseHelper"))));
 		cidBuilder.addExtendsTypes(extendsType);
+
+		// Add implements AsyncGeoResponse if has some Geo Field
+		if (hasGeoField(entity)) {
+			cidBuilder.addImplementsType(new JavaType("io.androoid.libraryproof.utils.AsyncGeoResponse"));
+		}
 
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
@@ -900,6 +916,31 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 			dependencies.add(dependency);
 		}
 		projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
+	}
+
+	/**
+	 * Method that checks if current entity has some Geo Field defined
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	private boolean hasGeoField(JavaType entity) {
+		Set<ClassOrInterfaceTypeDetails> allEntities = typeLocationService
+				.findClassesOrInterfaceDetailsWithAnnotation(new JavaType(AndrooidEntity.class));
+		for (ClassOrInterfaceTypeDetails definedEntity : allEntities) {
+
+			// Getting current entity
+			if (definedEntity.getType().equals(entity)) {
+				List<? extends FieldMetadata> fields = definedEntity.getDeclaredFields();
+				for (FieldMetadata field : fields) {
+					if (field.getFieldType().equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
