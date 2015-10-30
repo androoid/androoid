@@ -1686,19 +1686,6 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
 	}
 
 	/**
-	 * Method that returns field name declared on an activity XML file using
-	 * current entity FieldMetadata
-	 * 
-	 * @param field
-	 *            FieldMetadata that contains all necessary information to
-	 *            obtain field name declared on an activity XML file
-	 * @return String that contains field name declared. Doesn't include R class
-	 */
-	public String getFieldNameOnActivityXml(FieldMetadata field) {
-		return null;
-	}
-
-	/**
 	 * Method to check if provided field has @AndrooidReferencedField annotation
 	 * 
 	 * @param field
