@@ -317,8 +317,6 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 								+ "Only Androoid Entity classes could be used to generate new Androoid Activities.",
 						entity.getSimpleTypeName()));
 
-		String entityName = entity.getSimpleTypeName();
-
 		// Generate new List activity
 		addListActivity(entity);
 
@@ -390,6 +388,20 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		manifestOperations.addMetadataToActivity(listActivityElement, "android.support.PARENT_ACTIVITY",
 				".activities.MainActivity");
 
+		// Include entity_list_activity.xml view file
+		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "layout/list_activity.xml");
+
+		final Document listFile = XmlUtils.readXml(templateInputStream);
+		final Element root = listFile.getDocumentElement();
+		root.setAttribute("tools:context", listActivityName);
+
+		String xmlViewPath = pathResolver.getIdentifier(operationsUtils.getResourcesPath(projectOperations),
+				"/layout/".concat(entity.getSimpleTypeName().toLowerCase()).concat("_list_activity.xml"));
+
+		final MutableFile listActivityMutableFile = fileManager.createFile(xmlViewPath);
+
+		XmlUtils.writeXml(listActivityMutableFile.getOutputStream(), listFile);
+
 	}
 
 	/**
@@ -449,6 +461,20 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 				String.format("@string/title_activity_%s_form", entityName.toLowerCase()), "orientation", "portrait");
 		manifestOperations.addMetadataToActivity(formActivityElement, "android.support.PARENT_ACTIVITY",
 				listActivityName);
+
+		// Include entity_form_activity.xml view file
+		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "layout/form_activity.xml");
+
+		final Document formFile = XmlUtils.readXml(templateInputStream);
+		final Element root = formFile.getDocumentElement();
+		root.setAttribute("tools:context", formActivityName);
+
+		String xmlViewPath = pathResolver.getIdentifier(operationsUtils.getResourcesPath(projectOperations),
+				"/layout/".concat(entity.getSimpleTypeName().toLowerCase()).concat("_form_activity.xml"));
+
+		final MutableFile formActivityMutableFile = fileManager.createFile(xmlViewPath);
+
+		XmlUtils.writeXml(formActivityMutableFile.getOutputStream(), formFile);
 	}
 
 	/**
