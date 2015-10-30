@@ -26,6 +26,7 @@ import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.MethodMetadata;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
+import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadata;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.details.comments.CommentStructure;
@@ -468,6 +469,72 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		final Document formFile = XmlUtils.readXml(templateInputStream);
 		final Element root = formFile.getDocumentElement();
 		root.setAttribute("tools:context", formActivityName);
+
+		// Including all necessary fields on form view
+		Set<ClassOrInterfaceTypeDetails> allEntities = typeLocationService
+				.findClassesOrInterfaceDetailsWithAnnotation(new JavaType(AndrooidEntity.class));
+		for (ClassOrInterfaceTypeDetails definedEntity : allEntities) {
+			// Getting current entity
+			if (definedEntity.getType().equals(entity)) {
+				// Getting fields
+				List<? extends FieldMetadata> entityFields = definedEntity
+						.getFieldsWithAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+
+				for (FieldMetadata field : entityFields) {
+
+					AnnotationMetadata databaseFieldAnnotation = field
+							.getAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+
+					// Checking if field is a generatedId field
+					AnnotationAttributeValue<Boolean> generatedIdAttr = databaseFieldAnnotation
+							.getAttribute("generatedId");
+
+					boolean generatedId = false;
+
+					if (generatedIdAttr != null) {
+						generatedId = generatedIdAttr.getValue();
+					}
+
+					if (!generatedId) {
+						String fieldViewType = getFieldViewTypeOnActivity(field);
+						String fieldViewLabel = entity.getSimpleTypeName().toLowerCase().concat("_")
+								.concat(field.getFieldName().getSymbolName().toLowerCase());
+						String fieldViewName = entity.getSimpleTypeName().toLowerCase().concat("_")
+								.concat(field.getFieldName().getSymbolName().toLowerCase()).concat("_")
+								.concat(fieldViewType);
+
+						// Creating label
+						Element labelElement = formFile.createElement("TextView");
+						labelElement.setAttribute("android:layout_width", "wrap_content");
+						labelElement.setAttribute("android:layout_height", "wrap_content");
+						labelElement.setAttribute("android:text", String.format("@string/%s", fieldViewLabel));
+						labelElement.setAttribute("android:id", String.format("@+id/%s", fieldViewLabel));
+						labelElement.setAttribute("android:layout_alignStart", String.format("@+id/%s", fieldViewName));
+						labelElement.setAttribute("android:layout_alignParentStart", "true");
+						root.appendChild(labelElement);
+
+						// Creating element depending of its type
+						if (fieldViewType.equals("text")) {
+							Element editTextElement = formFile.createElement("EditText");
+							editTextElement.setAttribute("android:layout_width", "fill_parent");
+							editTextElement.setAttribute("android:layout_height", "wrap_content");
+							editTextElement.setAttribute("android:inputType", "text");
+							editTextElement.setAttribute("android:ems", "10");
+							editTextElement.setAttribute("android:id", String.format("@+id/%s", fieldViewName));
+							editTextElement.setAttribute("android:layout_alignParentTop", "true");
+							editTextElement.setAttribute("android:layout_alignParentStart", "true");
+							editTextElement.setAttribute("android:layout_marginTop", "10dp");
+							editTextElement.setAttribute("android:layout_alignParentEnd", "false");
+							root.appendChild(editTextElement);
+						}
+
+					}
+
+				}
+
+				break;
+			}
+		}
 
 		String xmlViewPath = pathResolver.getIdentifier(operationsUtils.getResourcesPath(projectOperations),
 				"/layout/".concat(entity.getSimpleTypeName().toLowerCase()).concat("_form_activity.xml"));
@@ -1003,6 +1070,47 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method that returns field view type declared on an activity Java file
+	 * using current entity FieldMetadata.
+	 * 
+	 * @param field
+	 *            FieldMetadata that contains all necessary information to
+	 *            obtain field view type declared on an activity Java file
+	 * @return String that contains field view type.
+	 */
+	public String getFieldViewTypeOnActivity(FieldMetadata field) {
+		// Getting field type
+		JavaType fieldType = field.getFieldType();
+		String fieldViewType = "";
+
+		if (fieldType.equals(JavaType.BOOLEAN_PRIMITIVE) || fieldType.equals(JavaType.BOOLEAN_OBJECT)) {
+			fieldViewType = "switch";
+		} else if (fieldType.equals(new JavaType("org.osmdroid.util.GeoPoint"))) {
+			fieldViewType = "mapView";
+		} else if (isReferencedField(field)) {
+			fieldViewType = "spinner";
+		} else {
+			fieldViewType = "text";
+		}
+
+		return fieldViewType;
+	}
+
+	/**
+	 * Method to check if provided field has @AndrooidReferencedField annotation
+	 * 
+	 * @param field
+	 *            FieldMetadata with the field to check
+	 * 
+	 * @return true if is annotated with @AndrooidReferencedField
+	 */
+	public boolean isReferencedField(FieldMetadata field) {
+		AnnotationMetadata annotation = field.getAnnotation(
+				new JavaType("io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField"));
+		return annotation != null;
 	}
 
 	/**
