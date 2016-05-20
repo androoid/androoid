@@ -36,7 +36,7 @@
   
   <!-- Androoid Properties -->
   <properties>
-    <roo.version>2.0.0.BUILD-SNAPSHOT</roo.version>
+    <roo.version>2.0.0.M2</roo.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <osgi.version>5.0.0</osgi.version>
     <scr.plugin.version>1.20.0</scr.plugin.version>
@@ -59,23 +59,14 @@
   </modules>
   
   <repositories>
-    <repository>
-      <id>spring-roo-repository-release</id>
-      <name>Spring Roo Repository</name>
-      <url>http://spring-roo-repository.springsource.org/release</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>spring-roo-repository-snapshot</id>
-      <name>Spring Roo Repository</name>
-      <url>http://spring-roo-repository.springsource.org/snapshot</url>
-      <snapshots>
-        <updatePolicy>never</updatePolicy>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
+ 	<repository>
+	    <id>spring-roo-repository-release</id>
+	    <name>Spring Roo Repository</name>
+	    <url>http://repo.spring.io/spring-roo/</url>
+	    <snapshots>
+	        <enabled>false</enabled>
+	    </snapshots>
+	</repository>
   </repositories>
    
   
