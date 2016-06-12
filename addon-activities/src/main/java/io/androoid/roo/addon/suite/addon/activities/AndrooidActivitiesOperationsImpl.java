@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -40,6 +41,7 @@ import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
 import org.springframework.roo.project.Dependency;
+import org.springframework.roo.project.LogicalPath;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
@@ -416,6 +418,10 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
     final InputStream templateInputStream =
         FileUtils.getInputStream(getClass(), "layout/list_activity.xml");
 
+    // Include all necessary labels on strings.xml file
+    addLabel(String.format("title_activity_%s", entityName.toLowerCase()),
+        entity.getSimpleTypeName());
+
     final Document listFile = XmlUtils.readXml(templateInputStream);
     final Element root = listFile.getDocumentElement();
     root.setAttribute("tools:context", listActivityName);
@@ -496,6 +502,10 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
     manifestOperations.addMetadataToActivity(formActivityElement,
         "android.support.PARENT_ACTIVITY", listActivityName);
 
+    // Include all necessary labels on strings.xml file
+    addLabel(String.format("title_activity_%s_form", entityName.toLowerCase()),
+        entity.getSimpleTypeName());
+
     // Include entity_form_activity.xml view file
     final InputStream templateInputStream =
         FileUtils.getInputStream(getClass(), "layout/form_activity.xml");
@@ -512,7 +522,7 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
       // Getting current entity
       if (definedEntity.getType().equals(entity)) {
 
-        // Define map where all necessary labels will be saved
+        // Define list where all necessary labels will be saved
         Map<FieldMetadata, String> labelsToAdd = new HashMap<FieldMetadata, String>();
 
         // Getting fields
@@ -557,7 +567,7 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
             root.appendChild(labelElement);
 
             // Creating value of label above
-            labelsToAdd.put(field, fieldViewLabel);
+            addLabel(fieldViewLabel, field.getFieldName().getReadableSymbolName());
 
             // Creating element depending of its type
             if (fieldViewType.equals("text")) {
@@ -578,9 +588,6 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
 
         }
 
-        // Generating all necessary labels for current entity
-        addLabels(entity, labelsToAdd);
-
         break;
       }
     }
@@ -598,11 +605,22 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
    * This method will include all necessary labels inside strings.xml file for
    * the provided entity
    * 
-   * @param entity the entity that contains the labels
-   * @param labelsToAdd all labels to add
+   * @param title title of the label to add
+   * @param value the value of the label
    */
-  private void addLabels(JavaType entity, Map<FieldMetadata, String> labelsToAdd) {
+  private void addLabel(String title, String value) {
 
+    final InputStream templateInputStream = getStringsMutableFile().getInputStream();
+
+    final Document stringsFile = XmlUtils.readXml(templateInputStream);
+    final Element root = stringsFile.getDocumentElement();
+
+    Element stringElement = stringsFile.createElement("string");
+    stringElement.setAttribute("name", title);
+    stringElement.setTextContent(value);
+    root.appendChild(stringElement);
+
+    XmlUtils.writeXml(getStringsMutableFile().getOutputStream(), stringsFile);
 
   }
 
@@ -1211,6 +1229,29 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
         field.getAnnotation(new JavaType(
             "io.androoid.roo.addon.suite.addon.fields.annotations.AndrooidReferencedField"));
     return annotation != null;
+  }
+
+  /** 
+   * This method obtains strings.xml mutable file
+   * 
+   * @return
+   */
+  public MutableFile getStringsMutableFile() {
+    String stringsXmlPath =
+        projectOperations.getPathResolver().getIdentifier(
+            LogicalPath.getInstance(Path.SRC_MAIN_RES, ""), "values/strings.xml");
+    Validate
+        .isTrue(fileManager.exists(stringsXmlPath), "src/main/res/values/strings.xml not found");
+
+    MutableFile stringsXmlMutableFile = null;
+
+    try {
+      stringsXmlMutableFile = fileManager.updateFile(stringsXmlPath);
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+
+    return stringsXmlMutableFile;
   }
 
   /**
