@@ -41,104 +41,113 @@ import io.androoid.roo.addon.suite.addon.persistence.AndrooidPersistenceOperatio
 @Service
 public class AndrooidEntitiesOperationsImpl implements AndrooidEntitiesOperations {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference
-	private ProjectOperations projectOperations;
-	
-	@Reference
-	private AndrooidPersistenceOperations persistenceOperations;
-	
-	@Reference
-	private PathResolver pathResolver;
+  @Reference
+  private ProjectOperations projectOperations;
 
-	@Reference
-	private TypeLocationService typeLocationService;
+  @Reference
+  private AndrooidPersistenceOperations persistenceOperations;
 
-	@Reference
-	private TypeManagementService typeManagementService;
+  @Reference
+  private PathResolver pathResolver;
 
-	/** {@inheritDoc} */
-	public boolean isEntityCreationAvailable() {
-		return projectOperations.isFeatureInstalled("androoid-persistence");
-	}
+  @Reference
+  private TypeLocationService typeLocationService;
 
-	/** {@inheritDoc} */
-	public void createEntity(JavaType entity, JavaSymbolName identifierName, JavaType identifierType) {
-		// Install necessary dependencies
-		installDependencies();
+  @Reference
+  private TypeManagementService typeManagementService;
 
-		// Generate entity
-		int modifier = Modifier.PUBLIC;
-		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(entity,
-				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
-		File targetFile = new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
-		Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", entity);
+  /** {@inheritDoc} */
+  public boolean isEntityCreationAvailable() {
+    return projectOperations.isFeatureInstalled("androoid-persistence");
+  }
 
-		// Prepare class builder
-		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
-				declaredByMetadataId, modifier, entity, PhysicalTypeCategory.CLASS);
+  /** {@inheritDoc} */
+  public void createEntity(JavaType entity, JavaSymbolName identifierName, JavaType identifierType) {
+    // Install necessary dependencies
+    installDependencies();
 
-		// Including DatabaseTable annotation
-		cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType("com.j256.ormlite.table.DatabaseTable")));
+    // Generate entity
+    int modifier = Modifier.PUBLIC;
+    final String declaredByMetadataId =
+        PhysicalTypeIdentifier.createIdentifier(entity,
+            pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+    File targetFile =
+        new File(typeLocationService.getPhysicalTypeCanonicalPath(declaredByMetadataId));
+    Validate.isTrue(!targetFile.exists(), "Type '%s' already exists", entity);
 
-		// Including @AndrooidEntity annotation
-		AnnotationMetadataBuilder entityAnnotation = new AnnotationMetadataBuilder(new JavaType(AndrooidEntity.class));
-		if (identifierName != null) {
-			entityAnnotation.addStringAttribute("identifierField", identifierName.getSymbolName());
-		}
-		if (identifierType != null) {
-			entityAnnotation.addClassAttribute("identifierType", identifierType);
+    // Prepare class builder
+    final ClassOrInterfaceTypeDetailsBuilder cidBuilder =
+        new ClassOrInterfaceTypeDetailsBuilder(declaredByMetadataId, modifier, entity,
+            PhysicalTypeCategory.CLASS);
 
-		}
-		cidBuilder.addAnnotation(entityAnnotation);
-		
-		// Including @RooJavaBean annotation
-		AnnotationMetadataBuilder javaBeanAnnotation = new AnnotationMetadataBuilder(RooJavaType.ROO_JAVA_BEAN);
-		cidBuilder.addAnnotation(javaBeanAnnotation);
-		
-		// Including @RooToString annotation
-		AnnotationMetadataBuilder toStringAnnotation = new AnnotationMetadataBuilder(RooJavaType.ROO_TO_STRING);
-		cidBuilder.addAnnotation(toStringAnnotation);
-		
-		// Including empty constructor
-		cidBuilder.addConstructor(new ConstructorMetadataBuilder(declaredByMetadataId));
+    // Including DatabaseTable annotation
+    cidBuilder.addAnnotation(new AnnotationMetadataBuilder(new JavaType(
+        "com.j256.ormlite.table.DatabaseTable")));
 
-		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
-		
-		// Including entity on @AndrooidDatabaseHelper annotation
-		persistenceOperations.addDao(entity);
-		
-		// Updates persistence config file
-		persistenceOperations.updatePersistenceConfigFile();
-		
-	}
+    // Including @AndrooidEntity annotation
+    AnnotationMetadataBuilder entityAnnotation =
+        new AnnotationMetadataBuilder(new JavaType(AndrooidEntity.class));
+    if (identifierName != null) {
+      entityAnnotation.addStringAttribute("identifierField", identifierName.getSymbolName());
+    }
+    if (identifierType != null) {
+      entityAnnotation.addClassAttribute("identifierType", identifierType);
 
-	/**
-	 * Method that uses configuration.xml file to install dependencies and
-	 * properties on current pom.xml
-	 */
-	private void installDependencies() {
-		final Element configuration = XmlUtils.getConfiguration(getClass());
+    }
+    cidBuilder.addAnnotation(entityAnnotation);
 
-		// Add properties
-		List<Element> properties = XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
-		for (Element property : properties) {
-			projectOperations.addProperty(projectOperations.getFocusedModuleName(), new Property(property));
-		}
+    // Including @RooJavaBean annotation
+    AnnotationMetadataBuilder javaBeanAnnotation =
+        new AnnotationMetadataBuilder(RooJavaType.ROO_JAVA_BEAN);
+    cidBuilder.addAnnotation(javaBeanAnnotation);
 
-		// Add dependencies
-		List<Element> elements = XmlUtils.findElements("/configuration/androoid/dependencies/dependency",
-				configuration);
-		List<Dependency> dependencies = new ArrayList<Dependency>();
-		for (Element element : elements) {
-			Dependency dependency = new Dependency(element);
-			dependencies.add(dependency);
-		}
-		projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
-	}
+    // Including @RooToString annotation
+    AnnotationMetadataBuilder toStringAnnotation =
+        new AnnotationMetadataBuilder(RooJavaType.ROO_TO_STRING);
+    cidBuilder.addAnnotation(toStringAnnotation);
+
+    // Including empty constructor
+    cidBuilder.addConstructor(new ConstructorMetadataBuilder(declaredByMetadataId));
+
+    typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+
+    // Including entity on @AndrooidDatabaseHelper annotation
+    persistenceOperations.addDao(entity);
+
+    // Updates persistence config file
+    persistenceOperations.updatePersistenceConfigFile();
+
+  }
+
+  /**
+   * Method that uses configuration.xml file to install dependencies and
+   * properties on current pom.xml
+   */
+  private void installDependencies() {
+    final Element configuration = XmlUtils.getConfiguration(getClass());
+
+    // Add properties
+    List<Element> properties =
+        XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
+    for (Element property : properties) {
+      projectOperations.addProperty(projectOperations.getFocusedModuleName(),
+          new Property(property));
+    }
+
+    // Add dependencies
+    List<Element> elements =
+        XmlUtils.findElements("/configuration/androoid/dependencies/dependency", configuration);
+    List<Dependency> dependencies = new ArrayList<Dependency>();
+    for (Element element : elements) {
+      Dependency dependency = new Dependency(element);
+      dependencies.add(dependency);
+    }
+    projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
+  }
 
 }

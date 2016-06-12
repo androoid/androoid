@@ -42,177 +42,192 @@ import io.androoid.roo.addon.suite.addon.persistence.AndrooidPersistenceOperatio
 @Service
 public class AndrooidFieldsOperationsImpl implements AndrooidFieldsOperations {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference
-	private ProjectOperations projectOperations;
+  @Reference
+  private ProjectOperations projectOperations;
 
-	@Reference
-	private TypeLocationService typeLocationService;
+  @Reference
+  private TypeLocationService typeLocationService;
 
-	@Reference
-	private TypeManagementService typeManagementService;
+  @Reference
+  private TypeManagementService typeManagementService;
 
-	@Reference
-	private AndrooidPersistenceOperations persistenceOperations;
+  @Reference
+  private AndrooidPersistenceOperations persistenceOperations;
 
-	/** {@inheritDoc} */
-	public boolean isFieldCreationAvailable() {
-		return projectOperations.isFeatureInstalled("androoid-persistence");
-	}
+  /** {@inheritDoc} */
+  public boolean isFieldCreationAvailable() {
+    return projectOperations.isFeatureInstalled("androoid-persistence");
+  }
 
-	/** {@inheritDoc} */
-	public void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
-		// Install necessary dependencies
-		installDependencies();
-		
-		// Create new field
-		typeManagementService.addField(getFieldMetadata(entity, fieldName, fieldType).build());
-		// Update persistence config file
-		persistenceOperations.updatePersistenceConfigFile();
-	}
+  /** {@inheritDoc} */
+  public void createField(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
+    // Install necessary dependencies
+    installDependencies();
 
-	/** {@inheritDoc} */
-	public void createReferencedField(JavaType entity, JavaSymbolName fieldName, JavaType entityToReference) {
-		
-		// Install necessary dependencies
-		installDependencies();
+    // Create new field
+    typeManagementService.addField(getFieldMetadata(entity, fieldName, fieldType).build());
+    // Update persistence config file
+    persistenceOperations.updatePersistenceConfigFile();
+  }
 
-		// Check if fieldType is an entity
-		ClassOrInterfaceTypeDetails details = typeLocationService.getTypeDetails(entityToReference);
-		AnnotationMetadata androoidEntityAnnotation = details.getAnnotation(new JavaType(AndrooidEntity.class));
+  /** {@inheritDoc} */
+  public void createReferencedField(JavaType entity, JavaSymbolName fieldName,
+      JavaType entityToReference) {
 
-		Validate.notNull(androoidEntityAnnotation, String.format("Referenced type '%s' is not a valid Androoid Entity.",
-				entityToReference.getSimpleTypeName()));
+    // Install necessary dependencies
+    installDependencies();
 
-		FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, entityToReference);
+    // Check if fieldType is an entity
+    ClassOrInterfaceTypeDetails details = typeLocationService.getTypeDetails(entityToReference);
+    AnnotationMetadata androoidEntityAnnotation =
+        details.getAnnotation(new JavaType(AndrooidEntity.class));
 
-		// Including params on @DatabaseField annotation
-		AnnotationMetadataBuilder databaseFieldAnnotation = newField
-				.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+    Validate.notNull(
+        androoidEntityAnnotation,
+        String.format("Referenced type '%s' is not a valid Androoid Entity.",
+            entityToReference.getSimpleTypeName()));
 
-		databaseFieldAnnotation.addBooleanAttribute("foreign", true);
-		databaseFieldAnnotation.addBooleanAttribute("foreignAutoRefresh", true);
-		databaseFieldAnnotation.addBooleanAttribute("canBeNull", true);
+    FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, entityToReference);
 
-		// Including @AndrooidReferencedField annotation
-		AnnotationMetadataBuilder referenceAnnotation = new AnnotationMetadataBuilder(
-				new JavaType(AndrooidReferencedField.class));
-		newField.addAnnotation(referenceAnnotation);
+    // Including params on @DatabaseField annotation
+    AnnotationMetadataBuilder databaseFieldAnnotation =
+        newField.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
 
-		typeManagementService.addField(newField.build());
+    databaseFieldAnnotation.addBooleanAttribute("foreign", true);
+    databaseFieldAnnotation.addBooleanAttribute("foreignAutoRefresh", true);
+    databaseFieldAnnotation.addBooleanAttribute("canBeNull", true);
 
-		// Update persistence config file
-		persistenceOperations.updatePersistenceConfigFile();
-	}
+    // Including @AndrooidReferencedField annotation
+    AnnotationMetadataBuilder referenceAnnotation =
+        new AnnotationMetadataBuilder(new JavaType(AndrooidReferencedField.class));
+    newField.addAnnotation(referenceAnnotation);
 
-	/** {@inheritDoc} */
-	public void createGeoField(JavaType entity, JavaSymbolName fieldName, AndrooidFieldGeoTypes fieldType) {
-		
-		// Install necessary dependencies
-		installDependencies();
+    typeManagementService.addField(newField.build());
 
-		FieldMetadataBuilder newField = getFieldMetadata(entity, fieldName, new JavaType(fieldType.description));
+    // Update persistence config file
+    persistenceOperations.updatePersistenceConfigFile();
+  }
 
-		// Including params on @DatabaseField annotation
-		AnnotationMetadataBuilder databaseFieldAnnotation = newField
-				.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
+  /** {@inheritDoc} */
+  public void createGeoField(JavaType entity, JavaSymbolName fieldName,
+      AndrooidFieldGeoTypes fieldType) {
 
-		databaseFieldAnnotation.addEnumAttribute("dataType", new JavaType("com.j256.ormlite.field.DataType"),
-				new JavaSymbolName("SERIALIZABLE"));
+    // Install necessary dependencies
+    installDependencies();
 
-		typeManagementService.addField(newField.build());
+    FieldMetadataBuilder newField =
+        getFieldMetadata(entity, fieldName, new JavaType(fieldType.description));
 
-		// Update persistence config file
-		persistenceOperations.updatePersistenceConfigFile();
-	}
+    // Including params on @DatabaseField annotation
+    AnnotationMetadataBuilder databaseFieldAnnotation =
+        newField.getDeclaredTypeAnnotation(new JavaType("com.j256.ormlite.field.DatabaseField"));
 
-	/**
-	 * Method that generates field metadata to be used on different create
-	 * fields methods
-	 * 
-	 * @param entity
-	 * @param fieldName
-	 * @param fieldType
-	 * @return
-	 */
-	public FieldMetadataBuilder getFieldMetadata(JavaType entity, JavaSymbolName fieldName, JavaType fieldType) {
+    databaseFieldAnnotation.addEnumAttribute("dataType", new JavaType(
+        "com.j256.ormlite.field.DataType"), new JavaSymbolName("SERIALIZABLE"));
 
-		// Check if entity exists
-		Set<ClassOrInterfaceTypeDetails> allEntities = typeLocationService
-				.findClassesOrInterfaceDetailsWithAnnotation(new JavaType(AndrooidEntity.class));
+    typeManagementService.addField(newField.build());
 
-		Validate.notEmpty(allEntities, "Create an entity before to add new fields!");
+    // Update persistence config file
+    persistenceOperations.updatePersistenceConfigFile();
+  }
 
-		Iterator<ClassOrInterfaceTypeDetails> it = allEntities.iterator();
-		boolean entityExists = false;
-		boolean fieldExists = false;
-		while (it.hasNext()) {
-			ClassOrInterfaceTypeDetails projectEntity = it.next();
-			if (projectEntity.getType().equals(entity)) {
-				entityExists = true;
-				// Check if field exists on current entity
-				ClassOrInterfaceTypeDetails entityDetails = typeLocationService.getTypeDetails(projectEntity.getType());
-				FieldMetadata entityField = entityDetails.getDeclaredField(fieldName);
-				if (entityField != null) {
-					fieldExists = true;
-				}
-				break;
-			}
-		}
+  /**
+   * Method that generates field metadata to be used on different create
+   * fields methods
+   * 
+   * @param entity
+   * @param fieldName
+   * @param fieldType
+   * @return
+   */
+  public FieldMetadataBuilder getFieldMetadata(JavaType entity, JavaSymbolName fieldName,
+      JavaType fieldType) {
 
-		Validate.isTrue(entityExists, String.format("Entity %s doesn't exists on current Android project.",
-				entity.getFullyQualifiedTypeName()));
+    // Check if entity exists
+    Set<ClassOrInterfaceTypeDetails> allEntities =
+        typeLocationService.findClassesOrInterfaceDetailsWithAnnotation(new JavaType(
+            AndrooidEntity.class));
 
-		Validate.isTrue(!fieldExists,
-				String.format("Field name %s exists on entity %s", fieldName, entity.getFullyQualifiedTypeName()));
+    Validate.notEmpty(allEntities, "Create an entity before to add new fields!");
 
-		final ClassOrInterfaceTypeDetails cid = typeLocationService.getTypeDetails(entity);
-		final String physicalTypeIdentifier = cid.getDeclaredByMetadataId();
-		FieldDetails fieldDetails = new FieldDetails(physicalTypeIdentifier, fieldType, fieldName);
-		// Checking not reserved words on fieldName
-		ReservedWords.verifyReservedWordsNotPresent(fieldDetails.getFieldName());
+    Iterator<ClassOrInterfaceTypeDetails> it = allEntities.iterator();
+    boolean entityExists = false;
+    boolean fieldExists = false;
+    while (it.hasNext()) {
+      ClassOrInterfaceTypeDetails projectEntity = it.next();
+      if (projectEntity.getType().equals(entity)) {
+        entityExists = true;
+        // Check if field exists on current entity
+        ClassOrInterfaceTypeDetails entityDetails =
+            typeLocationService.getTypeDetails(projectEntity.getType());
+        FieldMetadata entityField = entityDetails.getDeclaredField(fieldName);
+        if (entityField != null) {
+          fieldExists = true;
+        }
+        break;
+      }
+    }
 
-		// Adding Annotation @DatabaseField
-		List<AnnotationMetadataBuilder> fieldAnnotations = new ArrayList<AnnotationMetadataBuilder>();
-		AnnotationMetadataBuilder databaseFieldAnnotation = new AnnotationMetadataBuilder(
-				new JavaType("com.j256.ormlite.field.DatabaseField"));
-		fieldAnnotations.add(databaseFieldAnnotation);
-		fieldDetails.setAnnotations(fieldAnnotations);
+    Validate.isTrue(
+        entityExists,
+        String.format("Entity %s doesn't exists on current Android project.",
+            entity.getFullyQualifiedTypeName()));
 
-		// Adding Modifier
-		fieldDetails.setModifiers(Modifier.PRIVATE);
+    Validate.isTrue(
+        !fieldExists,
+        String.format("Field name %s exists on entity %s", fieldName,
+            entity.getFullyQualifiedTypeName()));
 
-		final FieldMetadataBuilder fieldBuilder = new FieldMetadataBuilder(fieldDetails);
+    final ClassOrInterfaceTypeDetails cid = typeLocationService.getTypeDetails(entity);
+    final String physicalTypeIdentifier = cid.getDeclaredByMetadataId();
+    FieldDetails fieldDetails = new FieldDetails(physicalTypeIdentifier, fieldType, fieldName);
+    // Checking not reserved words on fieldName
+    ReservedWords.verifyReservedWordsNotPresent(fieldDetails.getFieldName());
 
-		return fieldBuilder;
-	}
+    // Adding Annotation @DatabaseField
+    List<AnnotationMetadataBuilder> fieldAnnotations = new ArrayList<AnnotationMetadataBuilder>();
+    AnnotationMetadataBuilder databaseFieldAnnotation =
+        new AnnotationMetadataBuilder(new JavaType("com.j256.ormlite.field.DatabaseField"));
+    fieldAnnotations.add(databaseFieldAnnotation);
+    fieldDetails.setAnnotations(fieldAnnotations);
 
-	/**
-	 * Method that uses configuration.xml file to install dependencies and
-	 * properties on current pom.xml
-	 */
-	private void installDependencies() {
-		final Element configuration = XmlUtils.getConfiguration(getClass());
+    // Adding Modifier
+    fieldDetails.setModifiers(Modifier.PRIVATE);
 
-		// Add properties
-		List<Element> properties = XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
-		for (Element property : properties) {
-			projectOperations.addProperty(projectOperations.getFocusedModuleName(), new Property(property));
-		}
+    final FieldMetadataBuilder fieldBuilder = new FieldMetadataBuilder(fieldDetails);
 
-		// Add dependencies
-		List<Element> elements = XmlUtils.findElements("/configuration/androoid/dependencies/dependency",
-				configuration);
-		List<Dependency> dependencies = new ArrayList<Dependency>();
-		for (Element element : elements) {
-			Dependency dependency = new Dependency(element);
-			dependencies.add(dependency);
-		}
-		projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
-	}
+    return fieldBuilder;
+  }
+
+  /**
+   * Method that uses configuration.xml file to install dependencies and
+   * properties on current pom.xml
+   */
+  private void installDependencies() {
+    final Element configuration = XmlUtils.getConfiguration(getClass());
+
+    // Add properties
+    List<Element> properties =
+        XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
+    for (Element property : properties) {
+      projectOperations.addProperty(projectOperations.getFocusedModuleName(),
+          new Property(property));
+    }
+
+    // Add dependencies
+    List<Element> elements =
+        XmlUtils.findElements("/configuration/androoid/dependencies/dependency", configuration);
+    List<Dependency> dependencies = new ArrayList<Dependency>();
+    for (Element element : elements) {
+      Dependency dependency = new Dependency(element);
+      dependencies.add(dependency);
+    }
+    projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
+  }
 
 }

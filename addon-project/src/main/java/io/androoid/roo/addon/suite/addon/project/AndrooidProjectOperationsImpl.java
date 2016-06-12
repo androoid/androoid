@@ -32,79 +32,82 @@ import io.androoid.roo.addon.suite.addon.project.utils.AvailableSDKs;
 @Service
 public class AndrooidProjectOperationsImpl implements AndrooidProjectOperations {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference
-	private FileManager fileManager;
-	@Reference
-	private ProjectOperations projectOperations;
-	@Reference
-	private PathResolver pathResolver;
-	@Reference
-	private AndrooidManifestOperations manifestOperations;
+  @Reference
+  private FileManager fileManager;
+  @Reference
+  private ProjectOperations projectOperations;
+  @Reference
+  private PathResolver pathResolver;
+  @Reference
+  private AndrooidManifestOperations manifestOperations;
 
-	/** {@inheritDoc} */
-	public boolean isCreateProjectAvailable() {
-		return !projectOperations.isFeatureInstalled(FEATURE_ANDROOID_PROJECT)
-				&& !projectOperations.isFocusedProjectAvailable();
-	}
+  /** {@inheritDoc} */
+  public boolean isCreateProjectAvailable() {
+    return !projectOperations.isFeatureInstalled(FEATURE_ANDROOID_PROJECT)
+        && !projectOperations.isFocusedProjectAvailable();
+  }
 
-	/** {@inheritDoc} */
-	public void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion, AvailableSDKs targetSdkVersion) {
-		// Create pom.xml file
-		createPom(applicationId, minSdkVersion);
-		// Create AndroidManifest.xml file
-		manifestOperations.createAndroidManifestFile(applicationId);
-	}
+  /** {@inheritDoc} */
+  public void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion,
+      AvailableSDKs targetSdkVersion) {
+    // Create pom.xml file
+    createPom(applicationId, minSdkVersion);
+    // Create AndroidManifest.xml file
+    manifestOperations.createAndroidManifestFile(applicationId);
+  }
 
-	/**
-	 * Method that generates pom.xml
-	 * 
-	 * @param applicationId
-	 * @param minSdkVersion
-	 */
-	private void createPom(JavaPackage applicationId, AvailableSDKs minSdkVersion) {
-		Validate.isTrue(!fileManager.exists("pom.xml"), "'pom.xml' file exists!");
+  /**
+   * Method that generates pom.xml
+   * 
+   * @param applicationId
+   * @param minSdkVersion
+   */
+  private void createPom(JavaPackage applicationId, AvailableSDKs minSdkVersion) {
+    Validate.isTrue(!fileManager.exists("pom.xml"), "'pom.xml' file exists!");
 
-		// Load the pom template
-		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "pom-template.xml");
+    // Load the pom template
+    final InputStream templateInputStream =
+        FileUtils.getInputStream(getClass(), "pom-template.xml");
 
-		final Document pom = XmlUtils.readXml(templateInputStream);
-		final Element root = pom.getDocumentElement();
+    final Document pom = XmlUtils.readXml(templateInputStream);
+    final Element root = pom.getDocumentElement();
 
-		Element groupIdElement = (Element) root.getElementsByTagName("groupId").item(0);
-		groupIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
+    Element groupIdElement = (Element) root.getElementsByTagName("groupId").item(0);
+    groupIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
 
-		Element artifactIdElement = (Element) root.getElementsByTagName("artifactId").item(0);
-		artifactIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
+    Element artifactIdElement = (Element) root.getElementsByTagName("artifactId").item(0);
+    artifactIdElement.setTextContent(applicationId.getFullyQualifiedPackageName());
 
-		Element platformElement = (Element) root.getElementsByTagName("platform").item(0);
-		platformElement.setTextContent(minSdkVersion.getApiLevel().toString());
+    Element platformElement = (Element) root.getElementsByTagName("platform").item(0);
+    platformElement.setTextContent(minSdkVersion.getApiLevel().toString());
 
-		final List<Element> versionElements = XmlUtils.findElements("//*[.='JAVA_VERSION']", root);
-		for (final Element versionElement : versionElements) {
-			versionElement.setTextContent("1.7");
-		}
+    final List<Element> versionElements = XmlUtils.findElements("//*[.='JAVA_VERSION']", root);
+    for (final Element versionElement : versionElements) {
+      versionElement.setTextContent("1.7");
+    }
 
-		final MutableFile pomMutableFile = fileManager.createFile(pathResolver.getRoot() + "/pom.xml");
+    final MutableFile pomMutableFile = fileManager.createFile(pathResolver.getRoot() + "/pom.xml");
 
-		XmlUtils.writeXml(pomMutableFile.getOutputStream(), pom);
+    XmlUtils.writeXml(pomMutableFile.getOutputStream(), pom);
 
-	}
+  }
 
-	/**
-	 * FEATURE METHODS
-	 */
+  /**
+   * FEATURE METHODS
+   */
 
-	public String getName() {
-		return FEATURE_ANDROOID_PROJECT;
-	}
+  public String getName() {
+    return FEATURE_ANDROOID_PROJECT;
+  }
 
-	public boolean isInstalledInModule(String moduleName) {
-		final String manifestPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
-		return fileManager.exists(manifestPath);
-	}
+  public boolean isInstalledInModule(String moduleName) {
+    final String manifestPath =
+        pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
+    return fileManager.exists(manifestPath);
+  }
 }

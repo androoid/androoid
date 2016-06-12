@@ -12,36 +12,36 @@ import org.springframework.roo.project.Feature;
  */
 public interface AndrooidPersistenceOperations extends Feature {
 
-	public static final String FEATURE_ANDROOID_PERSISTENCE = "androoid-persistence";
+  public static final String FEATURE_ANDROOID_PERSISTENCE = "androoid-persistence";
 
-	/**
-	 * Indicates if androoid persistence command should be available.
-	 * 
-	 * @return true if it should be available, otherwise false
-	 */
-	boolean isPersistenceSetupAvailable();
+  /**
+   * Indicates if androoid persistence command should be available.
+   * 
+   * @return true if it should be available, otherwise false
+   */
+  boolean isPersistenceSetupAvailable();
 
-	/**
-	 * Configures persistence on generated Android project.
-	 * 
-	 * TODO: By default, uses ORMLite and SQLite, but in future versions
-	 * developers should select ORM they want to use.
-	 * 
-	 */
-	void setup();
+  /**
+   * Configures persistence on generated Android project.
+   * 
+   * TODO: By default, uses ORMLite and SQLite, but in future versions
+   * developers should select ORM they want to use.
+   * 
+   */
+  void setup();
 
-	/**
-	 * Includes new DAO on DatabaseHelper. Will include Dao and
-	 * RuntimeExceptionDao
-	 * 
-	 * @param type
-	 *            of the new Dao (Ex: MyEntity)
-	 */
-	void addDao(JavaType type);
+  /**
+   * Includes new DAO on DatabaseHelper. Will include Dao and
+   * RuntimeExceptionDao
+   * 
+   * @param type
+   *            of the new Dao (Ex: MyEntity)
+   */
+  void addDao(JavaType type);
 
-	/**
-	 * Updates persistence config file with all generated entities
-	 */
-	void updatePersistenceConfigFile();
+  /**
+   * Updates persistence config file with all generated entities
+   */
+  void updatePersistenceConfigFile();
 
 }

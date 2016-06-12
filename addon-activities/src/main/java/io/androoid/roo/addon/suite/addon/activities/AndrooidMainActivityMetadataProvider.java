@@ -28,57 +28,59 @@ import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidMainActi
 @Service
 public class AndrooidMainActivityMetadataProvider extends AbstractItdMetadataProvider {
 
-	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidMainActivityMetadataProvider.class);
+  protected final static Logger LOGGER = HandlerUtils
+      .getLogger(AndrooidMainActivityMetadataProvider.class);
 
-	public static final JavaType ANDROOID_MAIN_ACTVITY = new JavaType(AndrooidMainActivity.class);
+  public static final JavaType ANDROOID_MAIN_ACTVITY = new JavaType(AndrooidMainActivity.class);
 
-	@Reference
-	private ProjectOperations projectOperations;
+  @Reference
+  private ProjectOperations projectOperations;
 
-	protected void activate(final ComponentContext cContext) {
-		context = cContext.getBundleContext();
-		getMetadataDependencyRegistry().addNotificationListener(this);
-		getMetadataDependencyRegistry().registerDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		addMetadataTrigger(ANDROOID_MAIN_ACTVITY);
-	}
+  protected void activate(final ComponentContext cContext) {
+    context = cContext.getBundleContext();
+    getMetadataDependencyRegistry().addNotificationListener(this);
+    getMetadataDependencyRegistry().registerDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    addMetadataTrigger(ANDROOID_MAIN_ACTVITY);
+  }
 
-	@Override
-	protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
-		return AndrooidMainActivityMetadata.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
+    return AndrooidMainActivityMetadata.createIdentifier(javaType, path);
+  }
 
-	protected void deactivate(final ComponentContext context) {
-		getMetadataDependencyRegistry().removeNotificationListener(this);
-		getMetadataDependencyRegistry().deregisterDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		removeMetadataTrigger(ANDROOID_MAIN_ACTVITY);
-	}
+  protected void deactivate(final ComponentContext context) {
+    getMetadataDependencyRegistry().removeNotificationListener(this);
+    getMetadataDependencyRegistry().deregisterDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    removeMetadataTrigger(ANDROOID_MAIN_ACTVITY);
+  }
 
-	@Override
-	protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
-		final JavaType javaType = AndrooidMainActivityMetadata.getJavaType(metadataIdentificationString);
-		final LogicalPath path = AndrooidMainActivityMetadata.getPath(metadataIdentificationString);
-		return PhysicalTypeIdentifier.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
+    final JavaType javaType =
+        AndrooidMainActivityMetadata.getJavaType(metadataIdentificationString);
+    final LogicalPath path = AndrooidMainActivityMetadata.getPath(metadataIdentificationString);
+    return PhysicalTypeIdentifier.createIdentifier(javaType, path);
+  }
 
-	public String getItdUniquenessFilenameSuffix() {
-		return "AndrooidMainActivity";
-	}
+  public String getItdUniquenessFilenameSuffix() {
+    return "AndrooidMainActivity";
+  }
 
-	@Override
-	protected ItdTypeDetailsProvidingMetadataItem getMetadata(final String metadataIdentificationString,
-			final JavaType aspectName, final PhysicalTypeMetadata governorPhysicalTypeMetadata,
-			final String itdFilename) {
+  @Override
+  protected ItdTypeDetailsProvidingMetadataItem getMetadata(
+      final String metadataIdentificationString, final JavaType aspectName,
+      final PhysicalTypeMetadata governorPhysicalTypeMetadata, final String itdFilename) {
 
-		JavaPackage applicationPackage = projectOperations.getFocusedTopLevelPackage();
+    JavaPackage applicationPackage = projectOperations.getFocusedTopLevelPackage();
 
-		return new AndrooidMainActivityMetadata(metadataIdentificationString, aspectName, governorPhysicalTypeMetadata,
-				applicationPackage);
-	}
+    return new AndrooidMainActivityMetadata(metadataIdentificationString, aspectName,
+        governorPhysicalTypeMetadata, applicationPackage);
+  }
 
-	public String getProvidesType() {
-		return AndrooidMainActivityMetadata.getMetadataIdentiferType();
-	}
+  public String getProvidesType() {
+    return AndrooidMainActivityMetadata.getMetadataIdentiferType();
+  }
 
 }

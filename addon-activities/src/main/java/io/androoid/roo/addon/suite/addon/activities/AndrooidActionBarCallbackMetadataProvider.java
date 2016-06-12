@@ -25,53 +25,56 @@ import io.androoid.roo.addon.suite.addon.activities.annotations.AndrooidActionBa
 @Service
 public class AndrooidActionBarCallbackMetadataProvider extends AbstractItdMetadataProvider {
 
-	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidActionBarCallbackMetadataProvider.class);
+  protected final static Logger LOGGER = HandlerUtils
+      .getLogger(AndrooidActionBarCallbackMetadataProvider.class);
 
-	public static final JavaType ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION = new JavaType(
-			AndrooidActionBarCallback.class);
+  public static final JavaType ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION = new JavaType(
+      AndrooidActionBarCallback.class);
 
-	protected void activate(final ComponentContext cContext) {
-		context = cContext.getBundleContext();
-		getMetadataDependencyRegistry().addNotificationListener(this);
-		getMetadataDependencyRegistry().registerDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		addMetadataTrigger(ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION);
-	}
+  protected void activate(final ComponentContext cContext) {
+    context = cContext.getBundleContext();
+    getMetadataDependencyRegistry().addNotificationListener(this);
+    getMetadataDependencyRegistry().registerDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    addMetadataTrigger(ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION);
+  }
 
-	@Override
-	protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
-		return AndrooidActionBarCallbackMetadata.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
+    return AndrooidActionBarCallbackMetadata.createIdentifier(javaType, path);
+  }
 
-	protected void deactivate(final ComponentContext context) {
-		getMetadataDependencyRegistry().removeNotificationListener(this);
-		getMetadataDependencyRegistry().deregisterDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		removeMetadataTrigger(ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION);
-	}
+  protected void deactivate(final ComponentContext context) {
+    getMetadataDependencyRegistry().removeNotificationListener(this);
+    getMetadataDependencyRegistry().deregisterDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    removeMetadataTrigger(ANDROOID_ACTION_BAR_CALLBACK_ANNOTATION);
+  }
 
-	@Override
-	protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
-		final JavaType javaType = AndrooidActionBarCallbackMetadata.getJavaType(metadataIdentificationString);
-		final LogicalPath path = AndrooidActionBarCallbackMetadata.getPath(metadataIdentificationString);
-		return PhysicalTypeIdentifier.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
+    final JavaType javaType =
+        AndrooidActionBarCallbackMetadata.getJavaType(metadataIdentificationString);
+    final LogicalPath path =
+        AndrooidActionBarCallbackMetadata.getPath(metadataIdentificationString);
+    return PhysicalTypeIdentifier.createIdentifier(javaType, path);
+  }
 
-	public String getItdUniquenessFilenameSuffix() {
-		return "AndrooidActionBarCallback";
-	}
+  public String getItdUniquenessFilenameSuffix() {
+    return "AndrooidActionBarCallback";
+  }
 
-	@Override
-	protected ItdTypeDetailsProvidingMetadataItem getMetadata(final String metadataIdentificationString,
-			final JavaType aspectName, final PhysicalTypeMetadata governorPhysicalTypeMetadata,
-			final String itdFilename) {
+  @Override
+  protected ItdTypeDetailsProvidingMetadataItem getMetadata(
+      final String metadataIdentificationString, final JavaType aspectName,
+      final PhysicalTypeMetadata governorPhysicalTypeMetadata, final String itdFilename) {
 
-		return new AndrooidActionBarCallbackMetadata(metadataIdentificationString, aspectName,
-				governorPhysicalTypeMetadata);
-	}
+    return new AndrooidActionBarCallbackMetadata(metadataIdentificationString, aspectName,
+        governorPhysicalTypeMetadata);
+  }
 
-	public String getProvidesType() {
-		return AndrooidActionBarCallbackMetadata.getMetadataIdentiferType();
-	}
+  public String getProvidesType() {
+    return AndrooidActionBarCallbackMetadata.getMetadataIdentiferType();
+  }
 
 }

@@ -26,45 +26,49 @@ import org.springframework.roo.shell.CommandMarker;
 @Service
 public class AndrooidActivitiesCommands implements CommandMarker {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference
-	private AndrooidActivitiesOperations activitiesOperations;
+  @Reference
+  private AndrooidActivitiesOperations activitiesOperations;
 
-	/**
-	 * Activity layer setup is only available if exists a generated project
-	 * 
-	 * @return true if exists an androoid project in the current folder.
-	 */
-	@CliAvailabilityIndicator("androoid activity setup")
-	public boolean isSetupAvailable() {
-		return activitiesOperations.isSetupAvailable();
-	}
+  /**
+   * Activity layer setup is only available if exists a generated project
+   * 
+   * @return true if exists an androoid project in the current folder.
+   */
+  @CliAvailabilityIndicator("androoid activity setup")
+  public boolean isSetupAvailable() {
+    return activitiesOperations.isSetupAvailable();
+  }
 
-	/**
-	 * This method registers the androoid activity setup command.
-	 */
-	@CliCommand(value = "androoid activity setup", help = "Generates Android activity layer structure with all necessary components for activity layer.")
-	public void setup() {
-		// Install activity layer components
-		activitiesOperations.setup();
-	}
+  /**
+   * This method registers the androoid activity setup command.
+   */
+  @CliCommand(
+      value = "androoid activity setup",
+      help = "Generates Android activity layer structure with all necessary components for activity layer.")
+  public void setup() {
+    // Install activity layer components
+    activitiesOperations.setup();
+  }
 
-	/**
-	 * This method registers the androoid activity add command.
-	 * 
-	 * @param entity
-	 *            Name of the existing Androoid Entity associated with the new
-	 *            activity
-	 */
-	@CliCommand(value = "androoid activity add", help = "Generates new Android activity that allow users to manage AndrooidEntity data.")
-	public void add(
-			@CliOption(key = "entity", mandatory = true, help = "Name of the existing Androoid Entity associated with the new activity") final JavaType entity) {
+  /**
+   * This method registers the androoid activity add command.
+   * 
+   * @param entity
+   *            Name of the existing Androoid Entity associated with the new
+   *            activity
+   */
+  @CliCommand(value = "androoid activity add",
+      help = "Generates new Android activity that allow users to manage AndrooidEntity data.")
+  public void add(
+      @CliOption(key = "entity", mandatory = true,
+          help = "Name of the existing Androoid Entity associated with the new activity") final JavaType entity) {
 
-		// Add new Activity related with an existing entity
-		activitiesOperations.add(entity);
-	}
+    // Add new Activity related with an existing entity
+    activitiesOperations.add(entity);
+  }
 }

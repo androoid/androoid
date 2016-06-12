@@ -36,82 +36,89 @@ import io.androoid.roo.addon.suite.addon.persistence.annotations.AndrooidDatabas
 @Service
 public class AndrooidDatabaseHelperMetadataProvider extends AbstractItdMetadataProvider {
 
-	protected final static Logger LOGGER = HandlerUtils.getLogger(AndrooidDatabaseHelperMetadataProvider.class);
+  protected final static Logger LOGGER = HandlerUtils
+      .getLogger(AndrooidDatabaseHelperMetadataProvider.class);
 
-	public static final JavaType ANDROOID_DATABASE_HELPER = new JavaType(AndrooidDatabaseHelper.class);
+  public static final JavaType ANDROOID_DATABASE_HELPER =
+      new JavaType(AndrooidDatabaseHelper.class);
 
-	@Reference
-	ProjectOperations projectOperations;
+  @Reference
+  ProjectOperations projectOperations;
 
-	@Reference
-	TypeLocationService typeLocationService;
+  @Reference
+  TypeLocationService typeLocationService;
 
-	protected void activate(final ComponentContext cContext) {
-		context = cContext.getBundleContext();
-		getMetadataDependencyRegistry().addNotificationListener(this);
-		getMetadataDependencyRegistry().registerDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		addMetadataTrigger(ANDROOID_DATABASE_HELPER);
-	}
+  protected void activate(final ComponentContext cContext) {
+    context = cContext.getBundleContext();
+    getMetadataDependencyRegistry().addNotificationListener(this);
+    getMetadataDependencyRegistry().registerDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    addMetadataTrigger(ANDROOID_DATABASE_HELPER);
+  }
 
-	@Override
-	protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
-		return AndrooidDatabaseHelperMetadata.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String createLocalIdentifier(final JavaType javaType, final LogicalPath path) {
+    return AndrooidDatabaseHelperMetadata.createIdentifier(javaType, path);
+  }
 
-	protected void deactivate(final ComponentContext context) {
-		getMetadataDependencyRegistry().removeNotificationListener(this);
-		getMetadataDependencyRegistry().deregisterDependency(PhysicalTypeIdentifier.getMetadataIdentiferType(),
-				getProvidesType());
-		removeMetadataTrigger(ANDROOID_DATABASE_HELPER);
-	}
+  protected void deactivate(final ComponentContext context) {
+    getMetadataDependencyRegistry().removeNotificationListener(this);
+    getMetadataDependencyRegistry().deregisterDependency(
+        PhysicalTypeIdentifier.getMetadataIdentiferType(), getProvidesType());
+    removeMetadataTrigger(ANDROOID_DATABASE_HELPER);
+  }
 
-	@Override
-	protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
-		final JavaType javaType = AndrooidDatabaseHelperMetadata.getJavaType(metadataIdentificationString);
-		final LogicalPath path = AndrooidDatabaseHelperMetadata.getPath(metadataIdentificationString);
-		return PhysicalTypeIdentifier.createIdentifier(javaType, path);
-	}
+  @Override
+  protected String getGovernorPhysicalTypeIdentifier(final String metadataIdentificationString) {
+    final JavaType javaType =
+        AndrooidDatabaseHelperMetadata.getJavaType(metadataIdentificationString);
+    final LogicalPath path = AndrooidDatabaseHelperMetadata.getPath(metadataIdentificationString);
+    return PhysicalTypeIdentifier.createIdentifier(javaType, path);
+  }
 
-	public String getItdUniquenessFilenameSuffix() {
-		return "AndrooidDatabaseHelper";
-	}
+  public String getItdUniquenessFilenameSuffix() {
+    return "AndrooidDatabaseHelper";
+  }
 
-	@Override
-	protected ItdTypeDetailsProvidingMetadataItem getMetadata(final String metadataIdentificationString,
-			final JavaType aspectName, final PhysicalTypeMetadata governorPhysicalTypeMetadata,
-			final String itdFilename) {
+  @Override
+  protected ItdTypeDetailsProvidingMetadataItem getMetadata(
+      final String metadataIdentificationString, final JavaType aspectName,
+      final PhysicalTypeMetadata governorPhysicalTypeMetadata, final String itdFilename) {
 
-		// Getting Project Package
-		JavaPackage projectPackage = projectOperations.getFocusedTopLevelPackage();
+    // Getting Project Package
+    JavaPackage projectPackage = projectOperations.getFocusedTopLevelPackage();
 
-		// Getting project entities
-		List<JavaType> entitiesToInclude = new ArrayList<JavaType>();
+    // Getting project entities
+    List<JavaType> entitiesToInclude = new ArrayList<JavaType>();
 
-		final JavaType databaseHelper = AndrooidDatabaseHelperMetadata.getJavaType(metadataIdentificationString);
+    final JavaType databaseHelper =
+        AndrooidDatabaseHelperMetadata.getJavaType(metadataIdentificationString);
 
-		ClassOrInterfaceTypeDetails databaseHelperDetails = typeLocationService.getTypeDetails(databaseHelper);
-		AnnotationMetadata annotation = databaseHelperDetails.getAnnotation(new JavaType(AndrooidDatabaseHelper.class));
+    ClassOrInterfaceTypeDetails databaseHelperDetails =
+        typeLocationService.getTypeDetails(databaseHelper);
+    AnnotationMetadata annotation =
+        databaseHelperDetails.getAnnotation(new JavaType(AndrooidDatabaseHelper.class));
 
-		AnnotationAttributeValue<List<ClassAttributeValue>> entitiesAttribute = annotation.getAttribute("entities");
+    AnnotationAttributeValue<List<ClassAttributeValue>> entitiesAttribute =
+        annotation.getAttribute("entities");
 
-		if (entitiesAttribute != null) {
-			List<ClassAttributeValue> entities = entitiesAttribute.getValue();
-			Iterator<ClassAttributeValue> it = entities.iterator();
+    if (entitiesAttribute != null) {
+      List<ClassAttributeValue> entities = entitiesAttribute.getValue();
+      Iterator<ClassAttributeValue> it = entities.iterator();
 
-			while (it.hasNext()) {
-				ClassAttributeValue entity = it.next();
-				JavaType entityToInclude = entity.getValue();
-				entitiesToInclude.add(entityToInclude);
-			}
-		}
+      while (it.hasNext()) {
+        ClassAttributeValue entity = it.next();
+        JavaType entityToInclude = entity.getValue();
+        entitiesToInclude.add(entityToInclude);
+      }
+    }
 
-		return new AndrooidDatabaseHelperMetadata(metadataIdentificationString, aspectName,
-				governorPhysicalTypeMetadata, projectPackage, entitiesToInclude);
-	}
+    return new AndrooidDatabaseHelperMetadata(metadataIdentificationString, aspectName,
+        governorPhysicalTypeMetadata, projectPackage, entitiesToInclude);
+  }
 
-	public String getProvidesType() {
-		return AndrooidDatabaseHelperMetadata.getMetadataIdentiferType();
-	}
+  public String getProvidesType() {
+    return AndrooidDatabaseHelperMetadata.getMetadataIdentiferType();
+  }
 
 }

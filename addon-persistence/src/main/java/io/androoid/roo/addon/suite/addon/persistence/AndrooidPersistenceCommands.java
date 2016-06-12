@@ -22,33 +22,34 @@ import org.springframework.roo.shell.CommandMarker;
 @Service
 public class AndrooidPersistenceCommands implements CommandMarker {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
-	
-	@Reference
-	private AndrooidPersistenceOperations persistenceOperations;
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	/**
-	 * Persistence setup is only available if an Android project was generated before
-	 * using Spring Roo Shell
-	 * 
-	 * @return true if not exists other project in the current folder.
-	 */
-	@CliAvailabilityIndicator("androoid persistence setup")
-	public boolean isPersistenceSetupAvailable() {
-		return persistenceOperations.isPersistenceSetupAvailable();
-	}
+  @Reference
+  private AndrooidPersistenceOperations persistenceOperations;
 
-	/**
-	 * This method registers the androoid persistence setup command.
-	 * 
-	 */
-	@CliCommand(value = "androoid persistence setup", help = "Configure persistence on generated Android project.")
-	public void persistenceSetup(){
-		// Configuring Android project persistence
-		persistenceOperations.setup();
+  /**
+   * Persistence setup is only available if an Android project was generated before
+   * using Spring Roo Shell
+   * 
+   * @return true if not exists other project in the current folder.
+   */
+  @CliAvailabilityIndicator("androoid persistence setup")
+  public boolean isPersistenceSetupAvailable() {
+    return persistenceOperations.isPersistenceSetupAvailable();
+  }
 
-	}
+  /**
+   * This method registers the androoid persistence setup command.
+   * 
+   */
+  @CliCommand(value = "androoid persistence setup",
+      help = "Configure persistence on generated Android project.")
+  public void persistenceSetup() {
+    // Configuring Android project persistence
+    persistenceOperations.setup();
+
+  }
 }

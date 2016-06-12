@@ -25,56 +25,61 @@ import org.springframework.roo.shell.CommandMarker;
 @Service
 public class AndrooidProjectCommands implements CommandMarker {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference private AndrooidProjectOperations androoidOperations;
+  @Reference
+  private AndrooidProjectOperations androoidOperations;
 
-	/**
-	 * Project generation is only available if other project was not generated
-	 * before.
-	 * 
-	 * @return true if not exists other project in the current folder.
-	 */
-	@CliAvailabilityIndicator("androoid project setup")
-	public boolean isProjectSetupAvailable() {
-		return androoidOperations.isCreateProjectAvailable();
-	}
+  /**
+   * Project generation is only available if other project was not generated
+   * before.
+   * 
+   * @return true if not exists other project in the current folder.
+   */
+  @CliAvailabilityIndicator("androoid project setup")
+  public boolean isProjectSetupAvailable() {
+    return androoidOperations.isCreateProjectAvailable();
+  }
 
-	/**
-	 * This method registers the androoid project setup command.
-	 * 
-	 * 
-	 * @param applicationId
-	 *            A String that identifies current generated project. Will be
-	 *            included on defaultConfig of build.gradle file
-	 * @param minSdkVersion
-	 *            An integer designating the minimum API Level required for the
-	 *            application to run. The Android system will prevent the user
-	 *            from installing the application if the system's API Level is
-	 *            lower than the value specified in this attribute. You should
-	 *            always declare this attribute.
-	 * @param targetSdkVersion
-	 *            An integer designating the API Level that the application
-	 *            targets. If not set, the default value equals that given to
-	 *            minSdkVersion
-	 */
-	@CliCommand(value = "androoid project setup", help = "Generates Android Project structure")
-	public void projectSetup(
-			@CliOption(key = "applicationId", mandatory = true, help = "A String that identifies current generated project. (Ex: io.androoid.proof) ") JavaPackage applicationId,
-			@CliOption(key = "minSdkVersion", mandatory = true, help = "An integer designating the minimum API Level required for the application to run") AvailableSDKs minSdkVersion,
-			@CliOption(key = "targetSdkVersion", mandatory = false, help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion) {
+  /**
+   * This method registers the androoid project setup command.
+   * 
+   * 
+   * @param applicationId
+   *            A String that identifies current generated project. Will be
+   *            included on defaultConfig of build.gradle file
+   * @param minSdkVersion
+   *            An integer designating the minimum API Level required for the
+   *            application to run. The Android system will prevent the user
+   *            from installing the application if the system's API Level is
+   *            lower than the value specified in this attribute. You should
+   *            always declare this attribute.
+   * @param targetSdkVersion
+   *            An integer designating the API Level that the application
+   *            targets. If not set, the default value equals that given to
+   *            minSdkVersion
+   */
+  @CliCommand(value = "androoid project setup", help = "Generates Android Project structure")
+  public void projectSetup(
+      @CliOption(key = "applicationId", mandatory = true,
+          help = "A String that identifies current generated project. (Ex: io.androoid.proof) ") JavaPackage applicationId,
+      @CliOption(key = "minSdkVersion", mandatory = true,
+          help = "An integer designating the minimum API Level required for the application to run") AvailableSDKs minSdkVersion,
+      @CliOption(
+          key = "targetSdkVersion",
+          mandatory = false,
+          help = "An integer designating the API Level that the application targets. If not set, the default value equals that given to minSdkVersion") AvailableSDKs targetSdkVersion) {
 
-		// Checking if targetSdkVersion param was defined on executed command
-		if (targetSdkVersion == null) {
-			targetSdkVersion = minSdkVersion;
-		}
+    // Checking if targetSdkVersion param was defined on executed command
+    if (targetSdkVersion == null) {
+      targetSdkVersion = minSdkVersion;
+    }
 
-		// Generating new androoid project structure
-		androoidOperations.setup(applicationId, minSdkVersion,
-				targetSdkVersion);
+    // Generating new androoid project structure
+    androoidOperations.setup(applicationId, minSdkVersion, targetSdkVersion);
 
-	}
+  }
 }

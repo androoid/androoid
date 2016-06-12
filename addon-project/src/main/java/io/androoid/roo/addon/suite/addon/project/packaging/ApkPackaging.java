@@ -30,26 +30,25 @@ import org.springframework.roo.project.packaging.PackagingProvider;
 @Service
 public class ApkPackaging extends AbstractPackagingProvider {
 
-	/**
-	 * Constructor
-	 */
-	public ApkPackaging() {
-		super("apk", "apk", "parent-apk-template.xml");
-	}
+  /**
+   * Constructor
+   */
+  public ApkPackaging() {
+    super("apk", "apk", "parent-apk-template.xml");
+  }
 
-	@Override
-	protected void createOtherArtifacts(final JavaPackage topLevelPackage,
-			final String module, final ProjectOperations projectOperations) {
-		// No artifacts are applicable for POM modules
-	}
+  @Override
+  protected void createOtherArtifacts(final JavaPackage topLevelPackage, final String module,
+      final ProjectOperations projectOperations) {
+    // No artifacts are applicable for POM modules
+  }
 
-	public Collection<Path> getPaths() {
-        return Arrays.asList(SRC_MAIN, SRC_MAIN_JAVA, SRC_MAIN_RES, SRC_TEST_JAVA,
-                SRC_TEST_RESOURCES);
-	}
+  public Collection<Path> getPaths() {
+    return Arrays.asList(SRC_MAIN, SRC_MAIN_JAVA, SRC_MAIN_RES, SRC_TEST_JAVA, SRC_TEST_RESOURCES);
+  }
 
-	public boolean isDefault() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+  public boolean isDefault() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }

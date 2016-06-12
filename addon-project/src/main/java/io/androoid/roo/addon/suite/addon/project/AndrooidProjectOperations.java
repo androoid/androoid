@@ -11,26 +11,25 @@ import org.springframework.roo.project.Feature;
  * @author Juan Carlos García
  * @since 1.0
  */
-public interface AndrooidProjectOperations extends Feature{
-	
-	public static final String FEATURE_ANDROOID_PROJECT = "androoid-project";
+public interface AndrooidProjectOperations extends Feature {
 
-	/**
-	 * Indicates if create an androoid project command should be available.
-	 * 
-	 * @return true if it should be available, otherwise false
-	 */
-	boolean isCreateProjectAvailable();
+  public static final String FEATURE_ANDROOID_PROJECT = "androoid-project";
+
+  /**
+   * Indicates if create an androoid project command should be available.
+   * 
+   * @return true if it should be available, otherwise false
+   */
+  boolean isCreateProjectAvailable();
 
 
-	/**
-	 * Generates Android project structure.
-	 * 
-	 * @param applicationId
-	 * @param minSdkVersion
-	 * @param targetSdkVersion
-	 */
-	void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion,
-			AvailableSDKs targetSdkVersion);
+  /**
+   * Generates Android project structure.
+   * 
+   * @param applicationId
+   * @param minSdkVersion
+   * @param targetSdkVersion
+   */
+  void setup(JavaPackage applicationId, AvailableSDKs minSdkVersion, AvailableSDKs targetSdkVersion);
 
 }

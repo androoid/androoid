@@ -15,9 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface AndrooidFormActivity {
 
-	/**
-	 * @return the class of the related entity
-	 */
-	Class<?> entity();
+  /**
+   * @return the class of the related entity
+   */
+  Class<?> entity();
 
 }

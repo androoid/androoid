@@ -8,27 +8,27 @@ package io.androoid.roo.addon.suite.addon.fields;
  */
 public enum AndrooidFieldGeoTypes {
 
-	POINT("org.osmdroid.util.GeoPoint");
+  POINT("org.osmdroid.util.GeoPoint");
 
-	public final String description;
+  public final String description;
 
-	AndrooidFieldGeoTypes(String description) {
-		this.description = description;
-	}
+  AndrooidFieldGeoTypes(String description) {
+    this.description = description;
+  }
 
-	public static AndrooidFieldGeoTypes getFieldGeoTypes(String geoTypes) {
-		if (geoTypes != null && !"null".equals(geoTypes)) {
-			try {
-				return AndrooidFieldGeoTypes.valueOf(geoTypes);
-			} catch (java.lang.IllegalArgumentException ex) {
-				return null;
-			}
-		}
-		return null;
-	}
+  public static AndrooidFieldGeoTypes getFieldGeoTypes(String geoTypes) {
+    if (geoTypes != null && !"null".equals(geoTypes)) {
+      try {
+        return AndrooidFieldGeoTypes.valueOf(geoTypes);
+      } catch (java.lang.IllegalArgumentException ex) {
+        return null;
+      }
+    }
+    return null;
+  }
 
-	@Override
-	public String toString() {
-		return description;
-	}
+  @Override
+  public String toString() {
+    return description;
+  }
 }

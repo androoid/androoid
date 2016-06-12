@@ -37,240 +37,257 @@ import io.androoid.roo.addon.suite.support.AndrooidUtils;
 @Service
 public class AndrooidManifestOperationsImpl implements AndrooidManifestOperations {
 
-	/**
-	 * Get hold of a JDK Logger
-	 */
-	private Logger LOGGER = Logger.getLogger(getClass().getName());
+  /**
+   * Get hold of a JDK Logger
+   */
+  private Logger LOGGER = Logger.getLogger(getClass().getName());
 
-	@Reference
-	private FileManager fileManager;
-	@Reference
-	private ProjectOperations projectOperations;
-	@Reference
-	private PathResolver pathResolver;
-	@Reference
-	private AndrooidUtils operationsUtils;
+  @Reference
+  private FileManager fileManager;
+  @Reference
+  private ProjectOperations projectOperations;
+  @Reference
+  private PathResolver pathResolver;
+  @Reference
+  private AndrooidUtils operationsUtils;
 
-	/** {@inheritDoc} */
-	public void createAndroidManifestFile(JavaPackage applicationPackage) {
+  /** {@inheritDoc} */
+  public void createAndroidManifestFile(JavaPackage applicationPackage) {
 
-		// Check if AndroidManifest file is already created
-		Validate.isTrue(!fileManager.exists(pathResolver.getRoot().concat("/src/main/AndroidManifest.xml")),
-				"'AndroidManifest.xml' file exists!");
+    // Check if AndroidManifest file is already created
+    Validate.isTrue(
+        !fileManager.exists(pathResolver.getRoot().concat("/src/main/AndroidManifest.xml")),
+        "'AndroidManifest.xml' file exists!");
 
-		// Load the AndroidManifest template
-		final InputStream templateInputStream = FileUtils.getInputStream(getClass(), "AndroidManifest-template.xml");
+    // Load the AndroidManifest template
+    final InputStream templateInputStream =
+        FileUtils.getInputStream(getClass(), "AndroidManifest-template.xml");
 
-		final Document androidManifest = XmlUtils.readXml(templateInputStream);
-		final Element root = androidManifest.getDocumentElement();
+    final Document androidManifest = XmlUtils.readXml(templateInputStream);
+    final Element root = androidManifest.getDocumentElement();
 
-		root.setAttribute("package", applicationPackage.getFullyQualifiedPackageName());
+    root.setAttribute("package", applicationPackage.getFullyQualifiedPackageName());
 
-		final String manifestPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
-		final MutableFile mutableFile = fileManager.createFile(manifestPath);
+    final String manifestPath =
+        pathResolver.getFocusedIdentifier(Path.SRC_MAIN, "AndroidManifest.xml");
+    final MutableFile mutableFile = fileManager.createFile(manifestPath);
 
-		XmlUtils.writeXml(mutableFile.getOutputStream(), androidManifest);
+    XmlUtils.writeXml(mutableFile.getOutputStream(), androidManifest);
 
-	}
+  }
 
-	/** {@inheritDoc} */
-	public MutableFile getAndroidManifestMutableFile(ProjectOperations projectOperations, FileManager fileManager) {
-		LogicalPath resourcesPath = operationsUtils.getMainPath(projectOperations);
-		String androidManifestXmlPath = projectOperations.getPathResolver().getIdentifier(resourcesPath,
-				"AndroidManifest.xml");
-		Validate.isTrue(fileManager.exists(androidManifestXmlPath), "src/main/AndroidManifest.xml not found");
+  /** {@inheritDoc} */
+  public MutableFile getAndroidManifestMutableFile(ProjectOperations projectOperations,
+      FileManager fileManager) {
+    LogicalPath resourcesPath = operationsUtils.getMainPath(projectOperations);
+    String androidManifestXmlPath =
+        projectOperations.getPathResolver().getIdentifier(resourcesPath, "AndroidManifest.xml");
+    Validate.isTrue(fileManager.exists(androidManifestXmlPath),
+        "src/main/AndroidManifest.xml not found");
 
-		MutableFile androidManifestXmlMutableFile = null;
+    MutableFile androidManifestXmlMutableFile = null;
 
-		try {
-			androidManifestXmlMutableFile = fileManager.updateFile(androidManifestXmlPath);
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+    try {
+      androidManifestXmlMutableFile = fileManager.updateFile(androidManifestXmlPath);
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
 
-		return androidManifestXmlMutableFile;
-	}
+    return androidManifestXmlMutableFile;
+  }
 
-	/** {@inheriDoc} */
-	public void addApplicationConfig(Map<String, String> attributes) {
+  /** {@inheriDoc} */
+  public void addApplicationConfig(Map<String, String> attributes) {
 
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
+      Element root = androidManifestXml.getDocumentElement();
 
-			// Getting application tag
-			Element applicationElement = (Element) root.getElementsByTagName("application").item(0);
+      // Getting application tag
+      Element applicationElement = (Element) root.getElementsByTagName("application").item(0);
 
-			// Including basic configuration
-			for (Entry<String, String> attribute : attributes.entrySet()) {
-				applicationElement.setAttribute(attribute.getKey(), attribute.getValue());
-			}
+      // Including basic configuration
+      for (Entry<String, String> attribute : attributes.entrySet()) {
+        applicationElement.setAttribute(attribute.getKey(), attribute.getValue());
+      }
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-	}
+  }
 
-	/** {@inheritDoc} */
-	public void addPermission(String permissionName) {
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
+  /** {@inheritDoc} */
+  public void addPermission(String permissionName) {
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
+      Element root = androidManifestXml.getDocumentElement();
 
-			Map<String, String> permissionAttr = new HashMap<String, String>();
-			permissionAttr.put("android:name", permissionName);
-			operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", permissionAttr);
+      Map<String, String> permissionAttr = new HashMap<String, String>();
+      permissionAttr.put("android:name", permissionName);
+      operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", permissionAttr);
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-	}
+  }
 
-	/** {@inheritDoc} */
-	public void addPermissions(List<String> permissionsNames) {
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
-			Element root = androidManifestXml.getDocumentElement();
+  /** {@inheritDoc} */
+  public void addPermissions(List<String> permissionsNames) {
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
+      Element root = androidManifestXml.getDocumentElement();
 
-			for (String permissionName : permissionsNames) {
-				Map<String, String> permissionAttr = new HashMap<String, String>();
-				permissionAttr.put("android:name", permissionName);
-				operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission", permissionAttr);
-			}
+      for (String permissionName : permissionsNames) {
+        Map<String, String> permissionAttr = new HashMap<String, String>();
+        permissionAttr.put("android:name", permissionName);
+        operationsUtils.insertXmlElement(androidManifestXml, root, "uses-permission",
+            permissionAttr);
+      }
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-	/** {@inheritDoc} */
-	public Element addActivity(String name, String label, String configChanges, String screenOrientation) {
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
+  /** {@inheritDoc} */
+  public Element addActivity(String name, String label, String configChanges,
+      String screenOrientation) {
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
 
-			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+      NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
 
-			if (applicationElements.getLength() < 0) {
-				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
-			}
+      if (applicationElements.getLength() < 0) {
+        throw new RuntimeException(
+            "Error getting application element from AndroidManifest.xml file");
+      }
 
-			// Getting first application element
-			Element applicationElement = (Element) applicationElements.item(0);
+      // Getting first application element
+      Element applicationElement = (Element) applicationElements.item(0);
 
-			Map<String, String> attributes = new HashMap<String, String>();
-			attributes.put("android:name", name);
-			attributes.put("android:label", label);
-			attributes.put("android:configChanges", configChanges);
-			attributes.put("android:screenOrientation", screenOrientation);
-			Element activity = operationsUtils.insertXmlElement(androidManifestXml, applicationElement, "activity",
-					attributes);
+      Map<String, String> attributes = new HashMap<String, String>();
+      attributes.put("android:name", name);
+      attributes.put("android:label", label);
+      attributes.put("android:configChanges", configChanges);
+      attributes.put("android:screenOrientation", screenOrientation);
+      Element activity =
+          operationsUtils.insertXmlElement(androidManifestXml, applicationElement, "activity",
+              attributes);
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-			return activity;
+      return activity;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-		return null;
+    return null;
 
-	}
+  }
 
-	/** {@inheritDoc} */
-	public void addIntentFilterToActivity(Element activity, String actionName, String categoryName) {
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
+  /** {@inheritDoc} */
+  public void addIntentFilterToActivity(Element activity, String actionName, String categoryName) {
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
 
-			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+      NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
 
-			if (applicationElements.getLength() < 0) {
-				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
-			}
+      if (applicationElements.getLength() < 0) {
+        throw new RuntimeException(
+            "Error getting application element from AndroidManifest.xml file");
+      }
 
-			// Getting first application element
-			Element applicationElement = (Element) applicationElements.item(0);
+      // Getting first application element
+      Element applicationElement = (Element) applicationElements.item(0);
 
-			NodeList allChilds = applicationElement.getChildNodes();
-			for (int i = 0; i < allChilds.getLength(); i++) {
-				Node child = allChilds.item(i);
+      NodeList allChilds = applicationElement.getChildNodes();
+      for (int i = 0; i < allChilds.getLength(); i++) {
+        Node child = allChilds.item(i);
 
-				if (child.isEqualNode(activity)) {
-					Element intentFilter = androidManifestXml.createElement("intent-filter");
+        if (child.isEqualNode(activity)) {
+          Element intentFilter = androidManifestXml.createElement("intent-filter");
 
-					Element actionElement = androidManifestXml.createElement("action");
-					actionElement.setAttribute("android:name", actionName);
+          Element actionElement = androidManifestXml.createElement("action");
+          actionElement.setAttribute("android:name", actionName);
 
-					Element categoryElement = androidManifestXml.createElement("category");
-					categoryElement.setAttribute("android:name", categoryName);
+          Element categoryElement = androidManifestXml.createElement("category");
+          categoryElement.setAttribute("android:name", categoryName);
 
-					intentFilter.appendChild(actionElement);
-					intentFilter.appendChild(categoryElement);
+          intentFilter.appendChild(actionElement);
+          intentFilter.appendChild(categoryElement);
 
-					// Append intent-filter element to current activity
-					child.appendChild(intentFilter);
-				}
-			}
+          // Append intent-filter element to current activity
+          child.appendChild(intentFilter);
+        }
+      }
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-	/** {@inheritDoc} */
-	public void addMetadataToActivity(Element activity, String name, String value) {
-		try {
-			MutableFile androidManifestXmlMutableFile = getAndroidManifestMutableFile(projectOperations, fileManager);
-			Document androidManifestXml = XmlUtils.getDocumentBuilder()
-					.parse(androidManifestXmlMutableFile.getInputStream());
+  /** {@inheritDoc} */
+  public void addMetadataToActivity(Element activity, String name, String value) {
+    try {
+      MutableFile androidManifestXmlMutableFile =
+          getAndroidManifestMutableFile(projectOperations, fileManager);
+      Document androidManifestXml =
+          XmlUtils.getDocumentBuilder().parse(androidManifestXmlMutableFile.getInputStream());
 
-			NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
+      NodeList applicationElements = androidManifestXml.getElementsByTagName("application");
 
-			if (applicationElements.getLength() < 0) {
-				throw new RuntimeException("Error getting application element from AndroidManifest.xml file");
-			}
+      if (applicationElements.getLength() < 0) {
+        throw new RuntimeException(
+            "Error getting application element from AndroidManifest.xml file");
+      }
 
-			// Getting first application element
-			Element applicationElement = (Element) applicationElements.item(0);
+      // Getting first application element
+      Element applicationElement = (Element) applicationElements.item(0);
 
-			NodeList allChilds = applicationElement.getChildNodes();
-			for (int i = 0; i < allChilds.getLength(); i++) {
-				Node child = allChilds.item(i);
+      NodeList allChilds = applicationElement.getChildNodes();
+      for (int i = 0; i < allChilds.getLength(); i++) {
+        Node child = allChilds.item(i);
 
-				if (child.isEqualNode(activity)) {
-					Element metaData = androidManifestXml.createElement("meta-data");
-					metaData.setAttribute("android:name", name);
-					metaData.setAttribute("android:value", value);
+        if (child.isEqualNode(activity)) {
+          Element metaData = androidManifestXml.createElement("meta-data");
+          metaData.setAttribute("android:name", name);
+          metaData.setAttribute("android:value", value);
 
-					// Append meta-daa element to current activity
-					child.appendChild(metaData);
-				}
-			}
+          // Append meta-daa element to current activity
+          child.appendChild(metaData);
+        }
+      }
 
-			XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
+      XmlUtils.writeXml(androidManifestXmlMutableFile.getOutputStream(), androidManifestXml);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }
