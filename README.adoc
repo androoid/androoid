@@ -26,6 +26,23 @@ Androoid was created by http://github.com/jcagarcia[jcagarcia] and is maintained
  
 image:https://raw.githubusercontent.com/androoid/androoid.github.io/master/public/images/ANDROOID1_DARK_LARGE.jpg["Androoid Logo"]
 
+== Quick Start
+
+TODO
+
+== Developer Instructions
+
+TODO
+
+=== Code Style
+
+Androoid project follows the https://github.com/google/styleguide[Google Code Style] convention.
+
+The http://mvnrepository.com/artifact/com.googlecode.maven-java-formatter-plugin/maven-java-formatter-plugin[Maven Java Formatter plugin] is included in the https://github.com/androoid/androoid/blob/master/pom.xml[pom.xml] to format the Java source files using the https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml[Eclipse Java Code Format definition .xml file] included on the devel-resources folder.
+
+Important: _Developers and contributors that uses STS or Eclipse should install the Eclipse Java Code Format definition .xml file via `Window > Properties > Java > Code Style > Formatter > Import`. Contributors must execute `mvn clean install` before sending the pull requests to be sure that Google Code Styles have been applied._
+
+
 == Team and Contributors
 
 [width="100%",frame="topbot",options="header,footer"]
