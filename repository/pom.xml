@@ -16,7 +16,7 @@
     </parent>
     <artifactId>io.androoid.roo.addon.suite.repository</artifactId>
     <packaging>pom</packaging>
-    <name>Androoid - OSGi R5 Repository</name>
+    <name>Androoid - OSGi R6 Repository</name>
     <description>
     Generates the Addon Repository.
     This module will copy all addon artifacts to the local repository at
@@ -133,7 +133,7 @@
             <configuration>
               <tasks> 
               <taskdef classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpathref="maven.plugin.classpath" name="xmltask"/>
-              <xmltask dest="${project.parent.build.directory}/osgi-repository-bin/index.xml" preserveType="false" source="${project.parent.build.directory}/osgi-repository-bin/index.xml">
+              <xmltask dest="../target/osgi-repository-bin/index.xml" preserveType="false" source="../target/osgi-repository-bin/index.xml">
                 <insert path="/repository" position="before"> 
                 <![CDATA[ 
                 <?xml-stylesheet type="text/xsl" href="obr2html.xsl"?>
@@ -141,11 +141,11 @@
                 </insert> 
                 <attr attr="name" path="repository" value="Roo Addon Suite Repository"/>
               </xmltask>
-              <copy file="${basedir}/src/main/resources/suite.css" todir="${project.parent.build.directory}/osgi-repository-bin"/>
-              <copy file="${basedir}/src/main/resources/obr2html.xsl" todir="${project.parent.build.directory}/osgi-repository-bin"/>
-              <copy file="${basedir}/src/main/resources/style.css" todir="${project.parent.build.directory}/osgi-repository-bin"/>
-              <copy file="${basedir}/src/main/resources/bootstrap.min.css" todir="${project.parent.build.directory}/osgi-repository-bin"/>
-              <copy file="${project.parent.build.directory}/osgi-repository-bin/index.xml" tofile="${project.parent.build.directory}/osgi-repository-bin/index_${project.parent.version}.xml"/>
+              <copy file="${basedir}/src/main/resources/suite.css" todir="../target/osgi-repository-bin"/>
+              <copy file="${basedir}/src/main/resources/obr2html.xsl" todir="../target/osgi-repository-bin"/>
+              <copy file="${basedir}/src/main/resources/style.css" todir="../target/osgi-repository-bin"/>
+              <copy file="${basedir}/src/main/resources/bootstrap.min.css" todir="../target/osgi-repository-bin"/>
+              <copy file="../target/osgi-repository-bin/index.xml" tofile="../target/osgi-repository-bin/index_${project.parent.version}.xml"/>
               </tasks>
             </configuration>
           </execution>

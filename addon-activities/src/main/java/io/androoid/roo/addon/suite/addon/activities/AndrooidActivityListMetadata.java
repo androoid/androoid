@@ -947,11 +947,8 @@ public class AndrooidActivityListMetadata extends AbstractItdTypeDetailsProvidin
   private MethodMetadataBuilder getOnItemClickMethod() {
     // Define method parameter types
     List<AnnotatedJavaType> parameterTypes = new ArrayList<AnnotatedJavaType>();
-    parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType(
-        "android.widget.AdapterView", 0, DataType.TYPE, null, Arrays.asList(new JavaType(
-            JavaType.OBJECT.getFullyQualifiedTypeName(), 0, DataType.TYPE,
-            JavaType.WILDCARD_NEITHER, null)))));
-
+    parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.wrapperWilcard(new JavaType(
+        "android.widget.AdapterView"))));
     parameterTypes.add(AnnotatedJavaType.convertFromJavaType(new JavaType("android.view.View")));
     parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.INT_PRIMITIVE));
     parameterTypes.add(AnnotatedJavaType.convertFromJavaType(JavaType.LONG_PRIMITIVE));

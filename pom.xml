@@ -38,7 +38,7 @@
 
 	<!-- Androoid Properties -->
 	<properties>
-		<roo.version>2.0.0.M2</roo.version>
+		<roo.version>2.0.0.M3</roo.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<osgi.version>5.0.0</osgi.version>
 		<scr.plugin.version>1.20.0</scr.plugin.version>
