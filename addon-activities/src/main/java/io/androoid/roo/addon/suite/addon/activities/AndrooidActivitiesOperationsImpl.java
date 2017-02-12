@@ -17,6 +17,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.springframework.roo.addon.plural.addon.PluralService;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
@@ -91,6 +92,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
   private TypeLocationService typeLocationService;
   @Reference
   private TypeManagementService typeManagementService;
+  @Reference
+  private PluralService pluralService;
 
   protected void activate(final ComponentContext componentContext) {
     cContext = componentContext;
@@ -357,8 +360,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
     String entityName = entity.getSimpleTypeName();
     String listActivityName =
         projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
-            .concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
-            .concat("ListActivity");
+            .concat(".activities.").concat(pluralService.getPlural(entityName.toLowerCase()))
+            .concat(".").concat(entityName).concat("ListActivity");
     JavaType listActivity = new JavaType(listActivityName);
 
     int modifier = Modifier.PUBLIC;
@@ -449,8 +452,8 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
     String entityName = entity.getSimpleTypeName();
     String formActivityName =
         projectOperations.getFocusedTopLevelPackage().getFullyQualifiedPackageName()
-            .concat(".activities.").concat(entityName.toLowerCase()).concat(".").concat(entityName)
-            .concat("FormActivity");
+            .concat(".activities.").concat(pluralService.getPlural(entityName.toLowerCase()))
+            .concat(".").concat(entityName).concat("FormActivity");
     JavaType formActivity = new JavaType(formActivityName);
 
     int modifier = Modifier.PUBLIC;
@@ -505,6 +508,12 @@ public class AndrooidActivitiesOperationsImpl implements AndrooidActivitiesOpera
     // Include all necessary labels on strings.xml file
     addLabel(String.format("title_activity_%s_form", entityName.toLowerCase()),
         entity.getSimpleTypeName());
+    addLabel(String.format("title_activity_%s_form_create", entityName.toLowerCase()),
+        "Add New ".concat(entity.getSimpleTypeName()));
+    addLabel(String.format("title_activity_%s_form_update", entityName.toLowerCase()),
+        "Edit ".concat(entity.getSimpleTypeName()));
+    addLabel(String.format("title_activity_%s_form_show", entityName.toLowerCase()),
+        "Show ".concat(entity.getSimpleTypeName()));
 
     // Include entity_form_activity.xml view file
     final InputStream templateInputStream =

@@ -14,6 +14,7 @@ import org.springframework.roo.classpath.PhysicalTypeIdentifierNamingUtils;
 import org.springframework.roo.classpath.PhysicalTypeMetadata;
 import org.springframework.roo.classpath.details.FieldMetadata;
 import org.springframework.roo.classpath.details.FieldMetadataBuilder;
+import org.springframework.roo.classpath.details.MethodMetadata;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
@@ -748,7 +749,7 @@ public class AndrooidActivityFormMetadata extends AbstractItdTypeDetailsProvidin
           String fieldName = getFieldNameOnActivity(field);
           JavaType fieldType = getFieldTypeOnActivity(field);
           // Getting accessor method
-          MethodMetadataBuilder accessor = getAccessorMethod(field);
+          MethodMetadata accessor = getAccessorMethod(field);
 
           // Checking Spinners
           if (fieldType.equals(new JavaType("android.widget.Spinner"))) {

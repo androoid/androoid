@@ -39,6 +39,8 @@ import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
 import org.springframework.roo.project.Dependency;
+import org.springframework.roo.project.DependencyScope;
+import org.springframework.roo.project.DependencyType;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
@@ -372,29 +374,21 @@ public class AndrooidPersistenceOperationsImpl implements AndrooidPersistenceOpe
   }
 
   /**
-   * Method that uses configuration.xml file to install dependencies and
-   * properties on current pom.xml
+   * Method that install dependencies and properties for android persistence
+   * on current pom.xml
    */
   private void installDependencies() {
-    final Element configuration = XmlUtils.getConfiguration(getClass());
-
-    // Add properties
-    List<Element> properties =
-        XmlUtils.findElements("/configuration/androoid/properties/*", configuration);
-    for (Element property : properties) {
-      projectOperations.addProperty(projectOperations.getFocusedModuleName(),
-          new Property(property));
-    }
+    // Add property
+    projectOperations.addProperty("", new Property("androoid.version", "1.0.0.BUILD-SNAPSHOT"));
 
     // Add dependencies
-    List<Element> elements =
-        XmlUtils.findElements("/configuration/androoid/dependencies/dependency", configuration);
     List<Dependency> dependencies = new ArrayList<Dependency>();
-    for (Element element : elements) {
-      Dependency dependency = new Dependency(element);
-      dependencies.add(dependency);
-    }
-    projectOperations.addDependencies(projectOperations.getFocusedModuleName(), dependencies);
+    dependencies.add(new Dependency("io.androoid.roo.addon.suite",
+        "io.androoid.roo.addon.suite.addon.persistence", "${androoid.version}", DependencyType.JAR,
+        DependencyScope.PROVIDED));
+    dependencies.add(new Dependency("com.j256.ormlite", "ormlite-core", "4.48"));
+    dependencies.add(new Dependency("com.j256.ormlite", "ormlite-android", "4.48"));
+    projectOperations.addDependencies("", dependencies);
   }
 
   /**
